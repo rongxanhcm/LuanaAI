@@ -1,0 +1,31 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" width="64" height="64">
+  <!-- Favicon version - simplified -->
+  <defs>
+    <style>
+      @keyframes sparkle {
+        0%, 100% { opacity: 0.4; }
+        50% { opacity: 1; }
+      }
+      .spark { animation: sparkle 2s ease-in-out infinite; }
+    </style>
+  </defs>
+  
+  <!-- Document -->
+  <rect x="12" y="8" width="40" height="48" rx="2" fill="none" stroke="#C8A96E" stroke-width="1.5"/>
+  
+  <!-- Lines -->
+  <line x1="16" y1="16" x2="48" y2="16" stroke="#888" stroke-width="1" stroke-linecap="round"/>
+  <line x1="16" y1="24" x2="44" y2="24" stroke="#888" stroke-width="1" stroke-linecap="round"/>
+  <line x1="16" y1="32" x2="46" y2="32" stroke="#888" stroke-width="1" stroke-linecap="round"/>
+  <line x1="16" y1="40" x2="42" y2="40" stroke="#888" stroke-width="1" stroke-linecap="round"/>
+  <line x1="16" y1="48" x2="40" y2="48" stroke="#888" stroke-width="1" stroke-linecap="round"/>
+  
+  <!-- AI spark -->
+  <g transform="translate(48, 18)" class="spark">
+    <circle cx="0" cy="0" r="2.5" fill="#C8A96E"/>
+    <line x1="0" y1="-5" x2="0" y2="-8" stroke="#C8A96E" stroke-width="1" stroke-linecap="round"/>
+    <line x1="0" y1="5" x2="0" y2="8" stroke="#C8A96E" stroke-width="1" stroke-linecap="round"/>
+    <line x1="-5" y1="0" x2="-8" y2="0" stroke="#C8A96E" stroke-width="1" stroke-linecap="round"/>
+    <line x1="5" y1="0" x2="8" y2="0" stroke="#C8A96E" stroke-width="1" stroke-linecap="round"/>
+  </g>
+</svg>

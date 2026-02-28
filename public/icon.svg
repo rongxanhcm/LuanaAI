@@ -1,0 +1,58 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" width="200" height="200">
+  <!-- Background circle -->
+  <circle cx="100" cy="100" r="95" fill="#141414" stroke="#C8A96E" stroke-width="2"/>
+  
+  <!-- Document shape with AI spark -->
+  <g>
+    <!-- Document outline -->
+    <path d="M 60 40 L 60 160 Q 60 170 70 170 L 140 170 Q 150 170 150 160 L 150 40 Q 150 30 140 30 L 70 30 Q 60 30 60 40 Z" 
+          fill="none" stroke="#EDE9E2" stroke-width="2"/>
+    
+    <!-- Document lines (text) -->
+    <line x1="75" y1="55" x2="135" y2="55" stroke="#888" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="75" y1="70" x2="130" y2="70" stroke="#888" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="75" y1="85" x2="128" y2="85" stroke="#888" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="75" y1="100" x2="125" y2="100" stroke="#888" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="75" y1="115" x2="130" y2="115" stroke="#888" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="75" y1="130" x2="120" y2="130" stroke="#888" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="75" y1="145" x2="118" y2="145" stroke="#888" stroke-width="1.5" stroke-linecap="round"/>
+    
+    <!-- AI Sparkle/Spark effect on top-right -->
+    <g transform="translate(140, 55)">
+      <!-- Center circle -->
+      <circle cx="0" cy="0" r="5" fill="#C8A96E"/>
+      
+      <!-- Sparkle rays -->
+      <line x1="0" y1="-12" x2="0" y2="-18" stroke="#C8A96E" stroke-width="2" stroke-linecap="round"/>
+      <line x1="0" y1="12" x2="0" y2="18" stroke="#C8A96E" stroke-width="2" stroke-linecap="round"/>
+      <line x1="-12" y1="0" x2="-18" y2="0" stroke="#C8A96E" stroke-width="2" stroke-linecap="round"/>
+      <line x1="12" y1="0" x2="18" y2="0" stroke="#C8A96E" stroke-width="2" stroke-linecap="round"/>
+      
+      <!-- Diagonal rays -->
+      <line x1="-8.5" y1="-8.5" x2="-12.7" y2="-12.7" stroke="#C8A96E" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
+      <line x1="8.5" y1="8.5" x2="12.7" y2="12.7" stroke="#C8A96E" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
+      <line x1="-8.5" y1="8.5" x2="-12.7" y2="12.7" stroke="#C8A96E" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
+      <line x1="8.5" y1="-8.5" x2="12.7" y2="-12.7" stroke="#C8A96E" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
+    </g>
+  </g>
+  
+  <!-- Subtle animated glow (for reference in CSS) -->
+  <defs>
+    <style>
+      @keyframes glow {
+        0%, 100% { opacity: 0.3; }
+        50% { opacity: 0.8; }
+      }
+      .spark-glow {
+        animation: glow 2s ease-in-out infinite;
+      }
+    </style>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+</svg>
