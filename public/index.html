@@ -824,44 +824,41 @@ async function startGenerate() {
     // Count expected sections in structure
     const structureLines = structureText.split('\n').filter(l => l.trim().length > 0);
 
-    const prompt = `Write an academic document in Vietnamese about the following topic.
+    const prompt = `You must write an academic document in Vietnamese. Generate content for EVERY section listed below.
 
 TOPIC: ${topic}
 DOCUMENT TYPE: ${docTypeLabel}
 ${major ? `FIELD: ${major}` : ''}
 ${description ? `DESCRIPTION: ${description}` : ''}
 
-STRUCTURE TO FOLLOW (Generate content for EVERY section listed):
-${structureText}
+COMPLETE STRUCTURE - Write content for ALL ${structureLines.length} sections:
+${structureLines.map((line, idx) => `${idx + 1}. ${line}`).join('\n')}
 
 REQUIREMENTS:
-- Write 150-300 words for EACH section listed above
+- You MUST generate exactly ${structureLines.length} sections
+- Write 150-300 words for each section
 - Write in Vietnamese, academic style
-- Generate content for ALL ${structureLines.length} sections in the structure
-- Do not skip any sections
-- Do not combine sections
+- Do NOT skip any sections
+- Do NOT combine sections
+- Do NOT truncate output
 
-OUTPUT FORMAT - One delimiter block per section:
+OUTPUT FORMAT - Generate ALL sections with this format:
 ---SECTION---
-HEADING: Lời mở đầu
-LEVEL: 1
-CONTENT: Your Vietnamese content here (no line breaks)
+HEADING: Section name from list
+LEVEL: 1 or 2 (1=main, 2=sub)
+CONTENT: 150-300 words of Vietnamese content
 ---SECTION---
-HEADING: Chương 1: Cơ sở lý thuyết
-LEVEL: 1
-CONTENT: Your Vietnamese content here
----SECTION---
-HEADING: 1.1 Khái niệm cơ bản
-LEVEL: 2
-CONTENT: Your Vietnamese content here
+HEADING: Next section name
+LEVEL: 1 or 2
+CONTENT: Content
 
 Rules:
-- Create one ---SECTION--- block for each item in the structure
-- Use HEADING:, LEVEL:, CONTENT: labels
-- Level 1 = main chapters/sections, Level 2 = subsections
-- No line breaks within CONTENT values
-- Write naturally in Vietnamese
-- Total output should have ${structureLines.length} sections`;
+- Create ${structureLines.length} separate ---SECTION--- blocks
+- Use exact headings from the structure list
+- No line breaks in CONTENT
+- Write academic Vietnamese
+- You must complete all ${structureLines.length} sections before finishing`;
+
 
 
 
