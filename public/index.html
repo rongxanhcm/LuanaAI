@@ -805,38 +805,34 @@ async function startGenerate() {
 
     const defaultStructure = getDefaultStructure(docType);
 
-    const prompt = `Hãy viết nội dung học thuật tiếng Việt hoàn chỉnh cho tài liệu sau:
+    const prompt = `You are an academic document writer. Generate ONLY valid JSON output, nothing else.
 
-ĐỀ TÀI: ${topic}
-LOẠI TÀI LIỆU: ${docTypeLabel}
-${major ? `NGÀNH HỌC: ${major}` : ''}
-${description ? `MÔ TẢ / GỢI Ý: ${description}` : ''}
+TOPIC: ${topic}
+DOCUMENT TYPE: ${docTypeLabel}
+${major ? `FIELD: ${major}` : ''}
+${description ? `DESCRIPTION: ${description}` : ''}
 
-CẤU TRÚC:
+STRUCTURE:
 ${structure || defaultStructure}
 
-YÊU CẦU:
-- Viết văn học thuật tiếng Việt, chính xác và chuyên nghiệp
-- Mỗi mục cần có nội dung thực chất, khoảng 150-300 từ
-- Không bịa số liệu cụ thể, nếu cần thì ghi "[số liệu cần bổ sung]"
-- Văn phong nhất quán, logic
+REQUIREMENTS:
+- Write in Vietnamese, academic style
+- Each section 150-300 words
+- Use "[data needed]" instead of making up numbers
+- Consistent tone and logic
 
-QUAN TRỌNG - Trả về CHỈ JSON hợp lệ (không có text khác, không có markdown backticks):
-{
-  "title": "tên đề tài đầy đủ",
-  "docType": "${docTypeLabel}",
-  "sections": [
-    {"heading": "tên mục/chương", "level": 1, "content": "nội dung đoạn văn, tránh dấu ngoặc kép thừa"},
-    {"heading": "tiểu mục", "level": 2, "content": "nội dung tiểu mục..."}
-  ]
-}
+OUTPUT FORMAT - ONLY THIS JSON, NO OTHER TEXT:
+{"title":"full topic name","docType":"${docTypeLabel}","sections":[{"heading":"Section name","level":1,"content":"Section content as single paragraph"},{"heading":"Subsection","level":2,"content":"Content here"}]}
 
-LƯU Ý JSON:
-- Mỗi chuỗi text phải được bao bởi dấu ngoặc kép đúng
-- Không có newline thật bên trong string (dùng space thay)
-- Không có dấu ngoặc kép không được escape bên trong content
-- level: 1 = chương/mục chính, 2 = tiểu mục, 3 = tiểu tiểu mục
-- Nếu level 1 là chỉ tiêu đề, để content = ""`;
+CRITICAL RULES:
+- Every quote in content must be escaped: \\"
+- No real newlines in strings (use spaces)
+- Must be valid JSON parseable
+- No markdown, no extra text, no backticks
+- Fields: heading (string), level (1/2/3), content (string)
+- Return ONLY the JSON object`;
+
+
 
 
     await stepProgress(2, 'AI đang viết nội dung các chương...');
@@ -853,35 +849,41 @@ LƯU Ý JSON:
     }
 
     const data = await response.json();
-    const rawText = data.content.map(c => c.text || '').join('');
+    const rawText = data.content.map(c => c.text || '').join('').trim();
 
-    // Parse JSON
+    console.log('AI Response (first 500 chars):', rawText.substring(0, 500));
+
     let parsed;
     try {
-      const clean = rawText.replace(/```json|```/g, '').trim();
-      parsed = JSON.parse(clean);
+      // Direct parse - Claude should return only JSON
+      parsed = JSON.parse(rawText);
     } catch(e) {
-      // Try extracting JSON from response - find the outermost braces
-      let match = rawText.match(/\{[\s\S]*\}$/);
-      if (match) {
-        try {
-          parsed = JSON.parse(match[0]);
-        } catch(e2) {
-          // If still failing, try to fix common JSON issues
-          let fixed = match[0]
-            .replace(/[\r\n]+/g, '\\n')  // Escape actual newlines
-            .replace(/(?<!\\)"/g, '\\"') // Escape unescaped quotes
-            .replace(/\\\\n/g, '\\n');   // Fix double-escaped newlines
+      console.warn('Direct parse failed, trying extraction...', e.message);
+      
+      // Remove markdown code blocks if present
+      let cleaned = rawText.replace(/^```json\n?|^```\n?|\n*```$/gm, '').trim();
+      
+      try {
+        parsed = JSON.parse(cleaned);
+      } catch(e2) {
+        // Last resort: extract JSON object
+        const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
           try {
-            parsed = JSON.parse(fixed);
+            parsed = JSON.parse(jsonMatch[0]);
           } catch(e3) {
-            throw new Error(`JSON parse error: ${e.message} at position ${e.message.match(/position \d+/)?.[0] || 'unknown'}. Vui lòng thử lại.`);
+            throw new Error(`JSON invalid: ${e3.message}`);
           }
+        } else {
+          throw new Error(`No JSON found in response: ${rawText.substring(0, 200)}`);
         }
-      } else {
-        throw new Error('Không thể tìm JSON trong kết quả từ AI. Vui lòng thử lại.');
       }
     }
+
+    console.log('Successfully parsed JSON:', { 
+      title: parsed.title?.substring(0, 50),
+      sections: parsed.sections?.length 
+    });
 
     await stepProgress(3, 'Áp dụng format Word...');
 
