@@ -880,21 +880,26 @@ Rules:
     const sections = [];
     const sectionBlocks = rawText.split('---SECTION---').filter(s => s.trim());
 
+    console.log('Found', sectionBlocks.length, 'section blocks');
+
     for (const block of sectionBlocks) {
-      const headingMatch = block.match(/HEADING:\s*(.+?)(?:\n|LEVEL:)/s);
+      const headingMatch = block.match(/HEADING:\s*(.+?)(?:\n|LEVEL:)/);
       const levelMatch = block.match(/LEVEL:\s*(\d+)/);
-      const contentMatch = block.match(/CONTENT:\s*(.+?)(?:\n---SECTION---|$)/s);
+      // Fix: use [\s\S]+ to match everything including newlines
+      const contentMatch = block.match(/CONTENT:\s*([\s\S]+?)(?=\nHEADING:|\nLEVEL:|---SECTION---|$)/);
 
       if (headingMatch && levelMatch) {
+        const content = contentMatch ? contentMatch[1].trim() : '';
         sections.push({
           heading: headingMatch[1].trim(),
           level: parseInt(levelMatch[1]),
-          content: contentMatch ? contentMatch[1].trim() : ''
+          content: content
         });
+        console.log(`Section ${sections.length}: "${headingMatch[1].trim()}" - ${content.length} chars`);
       }
     }
 
-    console.log('✓ Parsed', sections.length, 'sections');
+    console.log('✓ Parsed', sections.length, 'sections total');
 
     if (sections.length === 0) {
       throw new Error('Could not parse any sections from AI response');
