@@ -821,21 +821,23 @@ YÊU CẦU:
 - Không bịa số liệu cụ thể, nếu cần thì ghi "[số liệu cần bổ sung]"
 - Văn phong nhất quán, logic
 
-Trả về CHỈ JSON (không có text nào khác, không có markdown backticks), theo đúng format:
+QUAN TRỌNG - Trả về CHỈ JSON hợp lệ (không có text khác, không có markdown backticks):
 {
   "title": "tên đề tài đầy đủ",
   "docType": "${docTypeLabel}",
   "sections": [
-    {
-      "heading": "tên mục/chương",
-      "level": 1,
-      "content": "nội dung đoạn văn học thuật..."
-    }
+    {"heading": "tên mục/chương", "level": 1, "content": "nội dung đoạn văn, tránh dấu ngoặc kép thừa"},
+    {"heading": "tiểu mục", "level": 2, "content": "nội dung tiểu mục..."}
   ]
 }
 
-level: 1 = chương/mục chính, 2 = tiểu mục, 3 = tiểu tiểu mục
-Với level 1 có thể để content rỗng nếu chỉ là tiêu đề chương.`;
+LƯU Ý JSON:
+- Mỗi chuỗi text phải được bao bởi dấu ngoặc kép đúng
+- Không có newline thật bên trong string (dùng space thay)
+- Không có dấu ngoặc kép không được escape bên trong content
+- level: 1 = chương/mục chính, 2 = tiểu mục, 3 = tiểu tiểu mục
+- Nếu level 1 là chỉ tiêu đề, để content = ""`;
+
 
     await stepProgress(2, 'AI đang viết nội dung các chương...');
 
@@ -859,10 +861,26 @@ Với level 1 có thể để content rỗng nếu chỉ là tiêu đề chươn
       const clean = rawText.replace(/```json|```/g, '').trim();
       parsed = JSON.parse(clean);
     } catch(e) {
-      // Try extracting JSON from response
-      const match = rawText.match(/\{[\s\S]+\}/);
-      if (match) parsed = JSON.parse(match[0]);
-      else throw new Error('Không thể parse kết quả từ AI. Vui lòng thử lại.');
+      // Try extracting JSON from response - find the outermost braces
+      let match = rawText.match(/\{[\s\S]*\}$/);
+      if (match) {
+        try {
+          parsed = JSON.parse(match[0]);
+        } catch(e2) {
+          // If still failing, try to fix common JSON issues
+          let fixed = match[0]
+            .replace(/[\r\n]+/g, '\\n')  // Escape actual newlines
+            .replace(/(?<!\\)"/g, '\\"') // Escape unescaped quotes
+            .replace(/\\\\n/g, '\\n');   // Fix double-escaped newlines
+          try {
+            parsed = JSON.parse(fixed);
+          } catch(e3) {
+            throw new Error(`JSON parse error: ${e.message} at position ${e.message.match(/position \d+/)?.[0] || 'unknown'}. Vui lòng thử lại.`);
+          }
+        }
+      } else {
+        throw new Error('Không thể tìm JSON trong kết quả từ AI. Vui lòng thử lại.');
+      }
     }
 
     await stepProgress(3, 'Áp dụng format Word...');
