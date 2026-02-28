@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DocGen VN — AI Tạo Tài Liệu Học Thuật</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=IBM+Plex+Sans+Thai:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.8.2/docx.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0C0C0C;
+    --surface: #141414;
+    --surface2: #1C1C1C;
+    --border: #282828;
+    --border2: #333;
+    --text: #EDE9E2;
+    --text2: #888;
+    --text3: #555;
+    --gold: #C8A96E;
+    --gold-dim: #8A6E3E;
+    --green: #4CAF72;
+    --red: #E05555;
+    --ff-serif: 'Lora', Georgia, serif;
+    --ff-sans: 'IBM Plex Sans Thai', system-ui, sans-serif;
+    --ff-mono: 'IBM Plex Mono', monospace;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--ff-sans);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ─── HEADER ─── */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+    background: var(--bg);
+    backdrop-filter: blur(10px);
+  }
+  .logo {
+    font-family: var(--ff-serif);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.5px;
+  }
+  .logo span { color: var(--gold); }
+  .badge {
+    font-family: var(--ff-mono);
+    font-size: 10px;
+    color: var(--text3);
+    border: 1px solid var(--border2);
+    padding: 3px 8px;
+    border-radius: 4px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  /* ─── MAIN LAYOUT ─── */
+  main {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 60px 40px 100px;
+  }
+
+  .hero {
+    margin-bottom: 56px;
+  }
+  .hero h1 {
+    font-family: var(--ff-serif);
+    font-size: clamp(28px, 4vw, 38px);
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--text);
+    margin-bottom: 12px;
+  }
+  .hero h1 em {
+    font-style: italic;
+    color: var(--gold);
+  }
+  .hero p {
+    color: var(--text2);
+    font-size: 15px;
+    max-width: 500px;
+  }
+
+  /* ─── SECTIONS ─── */
+  .section {
+    margin-bottom: 40px;
+  }
+  .section-label {
+    font-family: var(--ff-mono);
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ─── INPUTS ─── */
+  .field { margin-bottom: 20px; }
+  .field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text2);
+    margin-bottom: 7px;
+    letter-spacing: 0.3px;
+  }
+  .field label span {
+    color: var(--text3);
+    font-weight: 400;
+    font-size: 11px;
+  }
+
+  input[type="text"], input[type="number"], textarea, select {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--ff-sans);
+    font-size: 14px;
+    padding: 11px 14px;
+    border-radius: 8px;
+    outline: none;
+    transition: border-color 0.2s;
+    -webkit-appearance: none;
+  }
+  input[type="text"]:focus,
+  input[type="number"]:focus,
+  textarea:focus,
+  select:focus {
+    border-color: var(--gold-dim);
+    background: var(--surface2);
+  }
+  textarea { resize: vertical; min-height: 80px; }
+  select { cursor: pointer; }
+  select option { background: #1C1C1C; }
+
+  /* ─── GRID ─── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  @media (max-width: 600px) {
+    .grid-2 { grid-template-columns: 1fr; }
+    .grid-4 { grid-template-columns: 1fr 1fr; }
+  }
+
+  /* ─── FORMAT PRESETS ─── */
+  .presets {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .preset-btn {
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text2);
+    font-family: var(--ff-sans);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .preset-btn:hover { border-color: var(--gold-dim); color: var(--gold); }
+  .preset-btn.active { border-color: var(--gold); background: rgba(200,169,110,0.1); color: var(--gold); }
+
+  /* ─── STRUCTURE TAGS ─── */
+  .structure-preview {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-top: 10px;
+  }
+  .struct-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+    font-size: 13px;
+    color: var(--text2);
+  }
+  .struct-item .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--gold-dim);
+    flex-shrink: 0;
+  }
+  .struct-item.chapter { color: var(--text); font-weight: 500; }
+  .struct-item.chapter .dot { background: var(--gold); width: 8px; height: 8px; }
+
+  /* ─── GENERATE BUTTON ─── */
+  .btn-generate {
+    width: 100%;
+    padding: 16px;
+    border-radius: 10px;
+    border: none;
+    background: var(--gold);
+    color: #0C0C0C;
+    font-family: var(--ff-sans);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.2px;
+    margin-top: 8px;
+  }
+  .btn-generate:hover:not(:disabled) {
+    background: #D4B87A;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(200,169,110,0.25);
+  }
+  .btn-generate:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* ─── PROGRESS ─── */
+  #progress-section {
+    display: none;
+    text-align: center;
+    padding: 60px 20px;
+  }
+  .spinner {
+    width: 48px; height: 48px;
+    border: 2px solid var(--border);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    margin: 0 auto 24px;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .progress-label {
+    font-family: var(--ff-serif);
+    font-size: 20px;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+  .progress-sub {
+    color: var(--text2);
+    font-size: 13px;
+  }
+  .progress-steps {
+    margin-top: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 300px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: left;
+  }
+  .progress-step {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--text3);
+    transition: color 0.3s;
+  }
+  .progress-step.done { color: var(--green); }
+  .progress-step.active { color: var(--text); }
+  .step-icon { font-size: 15px; width: 20px; text-align: center; }
+
+  /* ─── RESULT ─── */
+  #result-section { display: none; }
+  .result-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 32px;
+    margin-top: 40px;
+    text-align: center;
+  }
+  .result-icon {
+    font-size: 40px;
+    margin-bottom: 16px;
+  }
+  .result-title {
+    font-family: var(--ff-serif);
+    font-size: 22px;
+    margin-bottom: 8px;
+  }
+  .result-sub {
+    color: var(--text2);
+    font-size: 13px;
+    margin-bottom: 28px;
+  }
+  .btn-download {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 13px 28px;
+    border-radius: 8px;
+    border: none;
+    background: var(--green);
+    color: #0C0C0C;
+    font-family: var(--ff-sans);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-right: 12px;
+    margin-bottom: 10px;
+  }
+  .btn-download:hover { opacity: 0.9; transform: translateY(-1px); }
+  .btn-reset {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 13px 28px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text2);
+    font-family: var(--ff-sans);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 10px;
+  }
+  .btn-reset:hover { border-color: var(--text2); color: var(--text); }
+
+  .preview-box {
+    margin-top: 24px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px 24px;
+    text-align: left;
+    max-height: 320px;
+    overflow-y: auto;
+  }
+  .preview-box::-webkit-scrollbar { width: 4px; }
+  .preview-box::-webkit-scrollbar-track { background: transparent; }
+  .preview-box::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+  .preview-section-title {
+    font-weight: 600;
+    color: var(--text);
+    font-size: 13px;
+    margin-bottom: 6px;
+    margin-top: 16px;
+  }
+  .preview-section-title:first-child { margin-top: 0; }
+  .preview-section-content {
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 1.6;
+  }
+
+  /* ─── ERROR ─── */
+  .error-msg {
+    background: rgba(224,85,85,0.1);
+    border: 1px solid rgba(224,85,85,0.3);
+    color: var(--red);
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-top: 16px;
+    display: none;
+  }
+
+  /* ─── UPLOAD LOGO ─── */
+  .upload-zone {
+    border: 1px dashed var(--border2);
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: var(--surface);
+    position: relative;
+  }
+  .upload-zone:hover { border-color: var(--gold-dim); background: var(--surface2); }
+  .upload-zone input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+  }
+  .upload-zone .upload-icon { font-size: 24px; margin-bottom: 6px; }
+  .upload-zone .upload-text { font-size: 12px; color: var(--text2); }
+  .upload-zone.has-file { border-color: var(--green); border-style: solid; }
+  .upload-zone.has-file .upload-icon::after { content: ' ✓'; color: var(--green); font-size: 14px; }
+
+  .logo-preview {
+    width: 60px; height: 60px;
+    object-fit: contain;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    display: none;
+    margin: 0 auto 8px;
+  }
+
+  /* ─── FOOTER ─── */
+  footer {
+    text-align: center;
+    padding: 40px;
+    color: var(--text3);
+    font-size: 12px;
+    border-top: 1px solid var(--border);
+    font-family: var(--ff-mono);
+  }
+
+  /* ─── SCROLLBAR ─── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+  /* ─── TOGGLE ─── */
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    user-select: none;
+  }
+  .toggle-row label { cursor: pointer; }
+  .toggle-arrow {
+    color: var(--text3);
+    transition: transform 0.2s;
+    font-size: 12px;
+  }
+  .toggle-arrow.open { transform: rotate(180deg); }
+  .collapsible { overflow: hidden; transition: max-height 0.3s ease; max-height: 0; }
+  .collapsible.open { max-height: 600px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Doc<span>Gen</span> VN</div>
+  <div class="badge">Beta — AI Academic</div>
+</header>
+
+<main>
+  <div id="form-section">
+    <div class="hero">
+      <h1>Tạo tài liệu học thuật<br><em>bằng AI, xuất thẳng Word</em></h1>
+      <p>Nhập đề tài, chọn format — AI sẽ viết toàn bộ nội dung và xuất file .docx đúng chuẩn cho bạn.</p>
+    </div>
+
+    <!-- STEP 1: Đề tài -->
+    <div class="section">
+      <div class="section-label">01 — Đề tài & Loại tài liệu</div>
+
+      <div class="field">
+        <label>Tên đề tài <span>*</span></label>
+        <input type="text" id="topic" placeholder="VD: Phân tích hiệu quả marketing online của doanh nghiệp vừa và nhỏ tại Việt Nam" />
+      </div>
+
+      <div class="grid-2">
+        <div class="field">
+          <label>Loại tài liệu</label>
+          <select id="docType">
+            <option value="luan_van">Luận văn / Khóa luận tốt nghiệp</option>
+            <option value="do_an">Báo cáo đồ án môn học</option>
+            <option value="tieu_luan">Tiểu luận / Assignment</option>
+            <option value="thuc_tap">Báo cáo thực tập</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Ngành học <span>(giúp AI viết đúng chuyên ngành)</span></label>
+          <input type="text" id="major" placeholder="VD: Quản trị kinh doanh, CNTT, Kinh tế..." />
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Mô tả ngắn / Gợi ý nội dung <span>(không bắt buộc)</span></label>
+        <textarea id="description" placeholder="VD: Tập trung vào mạng xã hội Facebook và TikTok, đối tượng nghiên cứu là SME tại TP.HCM, giai đoạn 2022-2024..."></textarea>
+      </div>
+    </div>
+
+    <!-- STEP 1.5: Trang bìa -->
+    <div class="section">
+      <div class="section-label">02 — Trang bìa</div>
+
+      <div class="grid-2">
+        <div class="field">
+          <label>Tên trường <span>*</span></label>
+          <input type="text" id="universityName" placeholder="VD: Trường Đại học Kinh tế TP.HCM" />
+        </div>
+        <div class="field">
+          <label>Tên khoa / viện</label>
+          <input type="text" id="facultyName" placeholder="VD: Khoa Quản trị Kinh doanh" />
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="field">
+          <label>Họ và tên sinh viên</label>
+          <input type="text" id="studentName" placeholder="VD: Nguyễn Văn A" />
+        </div>
+        <div class="field">
+          <label>MSSV / Mã học viên</label>
+          <input type="text" id="studentId" placeholder="VD: 2001234567" />
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="field">
+          <label>Giảng viên hướng dẫn</label>
+          <input type="text" id="supervisorName" placeholder="VD: PGS.TS. Trần Thị B" />
+        </div>
+        <div class="field">
+          <label>Lớp / Khóa / Năm học</label>
+          <input type="text" id="classInfo" placeholder="VD: QTKD001 — Năm học 2024-2025" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Logo trường <span>(tùy chọn — PNG/JPG)</span></label>
+        <div class="upload-zone" id="upload-zone">
+          <img id="logo-preview" class="logo-preview" src="" alt="Logo" />
+          <div class="upload-icon" id="upload-icon">🏫</div>
+          <div class="upload-text" id="upload-text">Click để chọn logo · PNG, JPG · Max 2MB</div>
+          <input type="file" id="logoInput" accept="image/*" onchange="handleLogoUpload(event)" />
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2: Cấu trúc -->
+    <div class="section">
+      <div class="section-label">03 — Cấu trúc tài liệu</div>
+
+      <div class="field">
+        <label>Cấu trúc mong muốn <span>(AI sẽ bám theo cấu trúc này)</span></label>
+        <textarea id="structure" placeholder="VD:
+Mở đầu
+Chương 1: Cơ sở lý luận
+  1.1 Khái niệm marketing online
+  1.2 Các hình thức marketing online
+Chương 2: Thực trạng
+  2.1 Tổng quan thị trường
+  2.2 Phân tích doanh nghiệp điển hình
+Chương 3: Giải pháp và kiến nghị
+Kết luận" style="min-height: 160px;"></textarea>
+      </div>
+
+      <div id="structure-preview" class="structure-preview" style="display:none;">
+        <div id="structure-items"></div>
+      </div>
+    </div>
+
+    <!-- STEP 3: Format -->
+    <div class="section">
+      <div class="section-label">04 — Format file Word</div>
+
+      <div class="presets">
+        <span style="font-size:12px; color:var(--text3); align-self:center; margin-right:4px;">Preset:</span>
+        <button class="preset-btn active" data-preset="standard">Chuẩn đại học VN</button>
+        <button class="preset-btn" data-preset="bk">Bách Khoa</button>
+        <button class="preset-btn" data-preset="ueh">UEH / NEU</button>
+        <button class="preset-btn" data-preset="custom">Tùy chỉnh</button>
+      </div>
+
+      <div class="grid-2">
+        <div class="field">
+          <label>Font chữ</label>
+          <select id="fontName">
+            <option value="Times New Roman">Times New Roman</option>
+            <option value="Arial">Arial</option>
+            <option value="Calibri">Calibri</option>
+            <option value="Tahoma">Tahoma</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Cỡ chữ (pt)</label>
+          <input type="number" id="fontSize" value="13" min="10" max="16" step="0.5" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Căn lề (cm) — Trái / Phải / Trên / Dưới</label>
+        <div class="grid-4">
+          <input type="number" id="marginLeft" value="3.5" min="1" max="5" step="0.1" placeholder="Trái" title="Căn lề trái" />
+          <input type="number" id="marginRight" value="2" min="1" max="5" step="0.1" placeholder="Phải" title="Căn lề phải" />
+          <input type="number" id="marginTop" value="3" min="1" max="5" step="0.1" placeholder="Trên" title="Căn lề trên" />
+          <input type="number" id="marginBottom" value="3" min="1" max="5" step="0.1" placeholder="Dưới" title="Căn lề dưới" />
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="field">
+          <label>Giãn dòng</label>
+          <select id="lineSpacing">
+            <option value="1.0">Đơn (1.0)</option>
+            <option value="1.15">1.15</option>
+            <option value="1.5" selected>1.5 (chuẩn)</option>
+            <option value="2.0">Đôi (2.0)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Khoảng cách đoạn sau (pt)</label>
+          <input type="number" id="spacingAfter" value="6" min="0" max="24" step="2" />
+        </div>
+      </div>
+    </div>
+
+    <div class="error-msg" id="error-msg"></div>
+
+    <button class="btn-generate" id="btn-generate" onclick="startGenerate()">
+      ✦ Tạo tài liệu
+    </button>
+  </div>
+
+  <!-- PROGRESS -->
+  <div id="progress-section">
+    <div class="spinner"></div>
+    <div class="progress-label">Đang tạo tài liệu...</div>
+    <div class="progress-sub" id="progress-sub">AI đang phân tích đề tài</div>
+
+    <div class="progress-steps">
+      <div class="progress-step" id="step-1">
+        <span class="step-icon">○</span> Phân tích đề tài & cấu trúc
+      </div>
+      <div class="progress-step" id="step-2">
+        <span class="step-icon">○</span> Viết nội dung từng chương
+      </div>
+      <div class="progress-step" id="step-3">
+        <span class="step-icon">○</span> Áp dụng format Word
+      </div>
+      <div class="progress-step" id="step-4">
+        <span class="step-icon">○</span> Tạo file .docx
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div id="result-section">
+    <div class="result-card">
+      <div class="result-icon">📄</div>
+      <div class="result-title" id="result-title">Tài liệu đã sẵn sàng!</div>
+      <div class="result-sub" id="result-sub">File .docx đã được tạo với đúng format bạn yêu cầu.</div>
+      <div>
+        <button class="btn-download" onclick="downloadFile()">
+          ↓ Tải file Word (.docx)
+        </button>
+        <button class="btn-reset" onclick="resetForm()">
+          ← Tạo tài liệu khác
+        </button>
+      </div>
+      <div class="preview-box" id="preview-box"></div>
+    </div>
+  </div>
+</main>
+
+<footer>DocGen VN — Powered by Claude AI · Xuất file Word chuẩn học thuật</footer>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────
+let generatedDoc = null;
+let generatedFilename = 'tai-lieu.docx';
+let logoBase64 = null;
+let logoMimeType = null;
+
+// ─── LOGO UPLOAD ─────────────────────────────────────────
+function handleLogoUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (file.size > 2 * 1024 * 1024) { alert('File quá lớn, vui lòng chọn ảnh dưới 2MB.'); return; }
+
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    const result = ev.target.result;
+    logoBase64 = result.split(',')[1];
+    logoMimeType = file.type;
+
+    const preview = document.getElementById('logo-preview');
+    preview.src = result;
+    preview.style.display = 'block';
+    document.getElementById('upload-icon').textContent = '';
+    document.getElementById('upload-text').textContent = '✓ ' + file.name;
+    document.getElementById('upload-zone').classList.add('has-file');
+  };
+  reader.readAsDataURL(file);
+}
+
+// ─── PRESETS ─────────────────────────────────────────────
+const PRESETS = {
+  standard: { font: 'Times New Roman', size: 13, left: 3.5, right: 2, top: 3, bottom: 3, spacing: 1.5, spAfter: 6 },
+  bk:       { font: 'Times New Roman', size: 13, left: 3.5, right: 2, top: 3.5, bottom: 3, spacing: 1.5, spAfter: 6 },
+  ueh:      { font: 'Times New Roman', size: 14, left: 3, right: 2.5, top: 3, bottom: 3, spacing: 1.5, spAfter: 0 },
+  custom:   null
+};
+
+document.querySelectorAll('.preset-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const p = PRESETS[btn.dataset.preset];
+    if (p) {
+      document.getElementById('fontName').value = p.font;
+      document.getElementById('fontSize').value = p.size;
+      document.getElementById('marginLeft').value = p.left;
+      document.getElementById('marginRight').value = p.right;
+      document.getElementById('marginTop').value = p.top;
+      document.getElementById('marginBottom').value = p.bottom;
+      document.getElementById('lineSpacing').value = p.spacing;
+      document.getElementById('spacingAfter').value = p.spAfter;
+    }
+  });
+});
+
+// ─── STRUCTURE PREVIEW ───────────────────────────────────
+document.getElementById('structure').addEventListener('input', function() {
+  updateStructurePreview(this.value);
+});
+
+function updateStructurePreview(text) {
+  const lines = text.split('\n').filter(l => l.trim());
+  const preview = document.getElementById('structure-preview');
+  const items = document.getElementById('structure-items');
+  if (!lines.length) { preview.style.display = 'none'; return; }
+
+  preview.style.display = 'block';
+  items.innerHTML = lines.slice(0, 15).map(line => {
+    const isChapter = /^(chương|mở đầu|kết luận|phần|\d+\.?\s+[A-ZÁÀẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬÉÈẺẼẸÊẾỀỂỄỆÍÌỈĨỊÓÒỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢÚÙỦŨỤƯỨỪỬỮỰÝỲỶỸỴĐ])/i.test(line.trim());
+    const indent = line.match(/^(\s+)/)?.[1]?.length || 0;
+    return `<div class="struct-item ${isChapter && indent === 0 ? 'chapter' : ''}" style="padding-left:${Math.min(indent * 8, 32)}px">
+      <div class="dot"></div>
+      <span>${line.trim()}</span>
+    </div>`;
+  }).join('');
+}
+
+// ─── VALIDATE ────────────────────────────────────────────
+function showError(msg) {
+  const el = document.getElementById('error-msg');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+function clearError() {
+  document.getElementById('error-msg').style.display = 'none';
+}
+
+// ─── GENERATE ────────────────────────────────────────────
+async function startGenerate() {
+  clearError();
+
+  const topic = document.getElementById('topic').value.trim();
+  if (!topic) { showError('Vui lòng nhập tên đề tài.'); return; }
+
+  const docType = document.getElementById('docType').value;
+  const major = document.getElementById('major').value.trim();
+  const description = document.getElementById('description').value.trim();
+  const structure = document.getElementById('structure').value.trim();
+
+  const coverInfo = {
+    university: document.getElementById('universityName').value.trim(),
+    faculty: document.getElementById('facultyName').value.trim(),
+    studentName: document.getElementById('studentName').value.trim(),
+    studentId: document.getElementById('studentId').value.trim(),
+    supervisor: document.getElementById('supervisorName').value.trim(),
+    classInfo: document.getElementById('classInfo').value.trim(),
+    logo: logoBase64,
+    logoMime: logoMimeType,
+  };
+
+  const fmt = {
+    fontName: document.getElementById('fontName').value,
+    fontSize: parseFloat(document.getElementById('fontSize').value) || 13,
+    marginLeft: parseFloat(document.getElementById('marginLeft').value) || 3.5,
+    marginRight: parseFloat(document.getElementById('marginRight').value) || 2,
+    marginTop: parseFloat(document.getElementById('marginTop').value) || 3,
+    marginBottom: parseFloat(document.getElementById('marginBottom').value) || 3,
+    lineSpacing: parseFloat(document.getElementById('lineSpacing').value) || 1.5,
+    spacingAfter: parseInt(document.getElementById('spacingAfter').value) || 6,
+  };
+
+  // UI transition
+  document.getElementById('form-section').style.display = 'none';
+  document.getElementById('progress-section').style.display = 'block';
+
+  try {
+    await stepProgress(1, 'Phân tích đề tài và cấu trúc...');
+
+    // Build prompt
+    const docTypeLabel = {
+      luan_van: 'Luận văn / Khóa luận tốt nghiệp đại học',
+      do_an: 'Báo cáo đồ án môn học',
+      tieu_luan: 'Tiểu luận học phần',
+      thuc_tap: 'Báo cáo thực tập'
+    }[docType];
+
+    const defaultStructure = getDefaultStructure(docType);
+
+    const prompt = `Hãy viết nội dung học thuật tiếng Việt hoàn chỉnh cho tài liệu sau:
+
+ĐỀ TÀI: ${topic}
+LOẠI TÀI LIỆU: ${docTypeLabel}
+${major ? `NGÀNH HỌC: ${major}` : ''}
+${description ? `MÔ TẢ / GỢI Ý: ${description}` : ''}
+
+CẤU TRÚC:
+${structure || defaultStructure}
+
+YÊU CẦU:
+- Viết văn học thuật tiếng Việt, chính xác và chuyên nghiệp
+- Mỗi mục cần có nội dung thực chất, khoảng 150-300 từ
+- Không bịa số liệu cụ thể, nếu cần thì ghi "[số liệu cần bổ sung]"
+- Văn phong nhất quán, logic
+
+Trả về CHỈ JSON (không có text nào khác, không có markdown backticks), theo đúng format:
+{
+  "title": "tên đề tài đầy đủ",
+  "docType": "${docTypeLabel}",
+  "sections": [
+    {
+      "heading": "tên mục/chương",
+      "level": 1,
+      "content": "nội dung đoạn văn học thuật..."
+    }
+  ]
+}
+
+level: 1 = chương/mục chính, 2 = tiểu mục, 3 = tiểu tiểu mục
+Với level 1 có thể để content rỗng nếu chỉ là tiêu đề chương.`;
+
+    await stepProgress(2, 'AI đang viết nội dung các chương...');
+
+    // Call proxy (API key được giữ an toàn ở server)
+    const response = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt })
+    });
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const rawText = data.content.map(c => c.text || '').join('');
+
+    // Parse JSON
+    let parsed;
+    try {
+      const clean = rawText.replace(/```json|```/g, '').trim();
+      parsed = JSON.parse(clean);
+    } catch(e) {
+      // Try extracting JSON from response
+      const match = rawText.match(/\{[\s\S]+\}/);
+      if (match) parsed = JSON.parse(match[0]);
+      else throw new Error('Không thể parse kết quả từ AI. Vui lòng thử lại.');
+    }
+
+    await stepProgress(3, 'Áp dụng format Word...');
+
+    // Build docx
+    const docBlob = await buildDocx(parsed, fmt, coverInfo);
+
+    await stepProgress(4, 'Hoàn tất!');
+
+    // Store result
+    generatedDoc = docBlob;
+    generatedFilename = slugify(topic) + '.docx';
+
+    // Show result
+    await new Promise(r => setTimeout(r, 600));
+    showResult(parsed, fmt);
+
+  } catch(err) {
+    console.error(err);
+    document.getElementById('progress-section').style.display = 'none';
+    document.getElementById('form-section').style.display = 'block';
+    showError('Lỗi: ' + (err.message || 'Không thể tạo tài liệu. Vui lòng thử lại.'));
+  }
+}
+
+// ─── STEP PROGRESS ───────────────────────────────────────
+async function stepProgress(step, msg) {
+  for (let i = 1; i <= 4; i++) {
+    const el = document.getElementById(`step-${i}`);
+    if (i < step) {
+      el.className = 'progress-step done';
+      el.querySelector('.step-icon').textContent = '✓';
+    } else if (i === step) {
+      el.className = 'progress-step active';
+      el.querySelector('.step-icon').textContent = '◉';
+    } else {
+      el.className = 'progress-step';
+      el.querySelector('.step-icon').textContent = '○';
+    }
+  }
+  document.getElementById('progress-sub').textContent = msg;
+  await new Promise(r => setTimeout(r, step < 3 ? 300 : 200));
+}
+
+// ─── DEFAULT STRUCTURES ──────────────────────────────────
+function getDefaultStructure(docType) {
+  const structures = {
+    luan_van: `Mở đầu
+  1. Lý do chọn đề tài
+  2. Mục tiêu nghiên cứu
+  3. Phạm vi và đối tượng nghiên cứu
+  4. Phương pháp nghiên cứu
+Chương 1: Cơ sở lý luận
+  1.1 Các khái niệm cơ bản
+  1.2 Lý thuyết nền tảng
+  1.3 Tổng quan nghiên cứu trước
+Chương 2: Thực trạng và phân tích
+  2.1 Tổng quan đối tượng nghiên cứu
+  2.2 Phân tích thực trạng
+  2.3 Đánh giá kết quả
+Chương 3: Giải pháp và kiến nghị
+  3.1 Định hướng phát triển
+  3.2 Các giải pháp đề xuất
+  3.3 Kiến nghị
+Kết luận`,
+    do_an: `Mở đầu
+Chương 1: Tổng quan đề tài
+  1.1 Giới thiệu bài toán
+  1.2 Yêu cầu và mục tiêu
+  1.3 Công nghệ sử dụng
+Chương 2: Phân tích và thiết kế
+  2.1 Phân tích yêu cầu
+  2.2 Thiết kế hệ thống
+Chương 3: Triển khai và kết quả
+  3.1 Cài đặt và triển khai
+  3.2 Kết quả đạt được
+  3.3 Đánh giá và hướng phát triển
+Kết luận`,
+    tieu_luan: `Mở đầu
+Nội dung
+  1. Cơ sở lý thuyết
+  2. Phân tích và bình luận
+  3. Liên hệ thực tiễn
+Kết luận`,
+    thuc_tap: `Giới thiệu doanh nghiệp
+  1.1 Lịch sử hình thành
+  1.2 Lĩnh vực hoạt động
+  1.3 Cơ cấu tổ chức
+Nội dung thực tập
+  2.1 Công việc được giao
+  2.2 Kết quả thực hiện
+  2.3 Bài học kinh nghiệm
+Đánh giá và kiến nghị
+Kết luận`
+  };
+  return structures[docType] || structures.tieu_luan;
+}
+
+// ─── BUILD DOCX ──────────────────────────────────────────
+async function buildDocx(content, fmt, cover) {
+  const {
+    Document, Packer, Paragraph, TextRun,
+    HeadingLevel, AlignmentType, TableOfContents,
+    ImageRun, PageBreak, Tab
+  } = window.docx;
+
+  const cmToTwip = cm => Math.round(cm * 566.93);
+  const ptToHalfPt = pt => Math.round(pt * 2);
+  const lineSpacingVal = Math.round(fmt.lineSpacing * 240);
+  const spacingAfterVal = Math.round(fmt.spacingAfter * 20);
+
+  const defaultRun = { font: fmt.fontName, size: ptToHalfPt(fmt.fontSize) };
+  const paraSpacing = { line: lineSpacingVal, lineRule: 'auto', after: spacingAfterVal };
+
+  const children = [];
+
+  // ── TRANG BÌA ──────────────────────────────────────────
+  // Logo (nếu có)
+  if (cover.logo) {
+    try {
+      const logoBytes = Uint8Array.from(atob(cover.logo), c => c.charCodeAt(0));
+      const ext = (cover.logoMime || 'image/png').split('/')[1].toUpperCase();
+      const imgType = ext === 'JPG' ? 'JPEG' : (ext === 'SVG' ? 'PNG' : ext);
+      children.push(new Paragraph({
+        alignment: AlignmentType.CENTER,
+        spacing: { before: 0, after: 200 },
+        children: [new ImageRun({
+          data: logoBytes,
+          transformation: { width: 100, height: 100 },
+          type: imgType,
+        })]
+      }));
+    } catch(e) { console.warn('Logo error:', e); }
+  } else {
+    children.push(new Paragraph({ spacing: { before: 0, after: 600 }, children: [new TextRun({ text: '' })] }));
+  }
+
+  // Tên trường
+  if (cover.university) {
+    children.push(new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { after: 80 },
+      children: [new TextRun({ text: cover.university.toUpperCase(), font: fmt.fontName, size: ptToHalfPt(14), bold: true })]
+    }));
+  }
+
+  // Tên khoa
+  if (cover.faculty) {
+    children.push(new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { after: 600 },
+      children: [new TextRun({ text: cover.faculty, font: fmt.fontName, size: ptToHalfPt(13), bold: false })]
+    }));
+  } else {
+    children.push(new Paragraph({ spacing: { after: 600 }, children: [new TextRun('')] }));
+  }
+
+  // Tiêu đề loại tài liệu
+  children.push(new Paragraph({
+    alignment: AlignmentType.CENTER,
+    spacing: { after: 160 },
+    children: [new TextRun({ text: content.docType?.toUpperCase() || 'TÀI LIỆU HỌC THUẬT', font: fmt.fontName, size: ptToHalfPt(16), bold: true, allCaps: true })]
+  }));
+
+  // Đường kẻ
+  children.push(new Paragraph({
+    alignment: AlignmentType.CENTER,
+    spacing: { after: 320 },
+    children: [new TextRun({ text: '─────────────────────────────', font: fmt.fontName, size: ptToHalfPt(11), color: 'AAAAAA' })]
+  }));
+
+  // Tên đề tài
+  children.push(new Paragraph({
+    alignment: AlignmentType.CENTER,
+    spacing: { after: 80 },
+    children: [new TextRun({ text: 'ĐỀ TÀI:', font: fmt.fontName, size: ptToHalfPt(13), bold: true, color: '2C3E50' })]
+  }));
+  children.push(new Paragraph({
+    alignment: AlignmentType.CENTER,
+    spacing: { after: 800 },
+    children: [new TextRun({ text: content.title || '', font: fmt.fontName, size: ptToHalfPt(17), bold: true, color: '1A252F' })]
+  }));
+
+  // Thông tin sinh viên (bên phải)
+  const infoLines = [];
+  if (cover.studentName) infoLines.push({ label: 'Sinh viên thực hiện:', value: cover.studentName });
+  if (cover.studentId)   infoLines.push({ label: 'MSSV:', value: cover.studentId });
+  if (cover.supervisor)  infoLines.push({ label: 'Giảng viên hướng dẫn:', value: cover.supervisor });
+  if (cover.classInfo)   infoLines.push({ label: 'Lớp / Khóa:', value: cover.classInfo });
+
+  for (const line of infoLines) {
+    children.push(new Paragraph({
+      alignment: AlignmentType.LEFT,
+      indent: { left: cmToTwip(4) },
+      spacing: { after: 80 },
+      children: [
+        new TextRun({ text: line.label + ' ', font: fmt.fontName, size: ptToHalfPt(13), bold: true }),
+        new TextRun({ text: line.value, font: fmt.fontName, size: ptToHalfPt(13) }),
+      ]
+    }));
+  }
+
+  // Năm ở cuối trang
+  const year = new Date().getFullYear();
+  children.push(new Paragraph({ spacing: { before: 600, after: 0 }, children: [new TextRun('')] }));
+  children.push(new Paragraph({
+    alignment: AlignmentType.CENTER,
+    children: [new TextRun({ text: `TP. Hồ Chí Minh, ${year}`, font: fmt.fontName, size: ptToHalfPt(13) })]
+  }));
+
+  // Page break sau trang bìa
+  children.push(new Paragraph({ pageBreakBefore: true, children: [new TextRun('')] }));
+
+  // ── MỤC LỤC ───────────────────────────────────────────
+  children.push(new Paragraph({
+    spacing: { after: 200 },
+    children: [new TextRun({ text: 'MỤC LỤC', font: fmt.fontName, size: ptToHalfPt(fmt.fontSize + 2), bold: true, allCaps: true })]
+  }));
+
+  // Render mục lục thủ công từ sections
+  for (const section of (content.sections || [])) {
+    const level = section.level || 1;
+    const indent = (level - 1) * cmToTwip(0.8);
+    children.push(new Paragraph({
+      indent: { left: indent },
+      spacing: { after: 60 },
+      children: [new TextRun({ text: section.heading || '', font: fmt.fontName, size: ptToHalfPt(fmt.fontSize - 0.5), bold: level === 1, color: level === 1 ? '000000' : '333333' })]
+    }));
+  }
+
+  // Page break sau mục lục
+  children.push(new Paragraph({ pageBreakBefore: true, children: [new TextRun('')] }));
+
+  // ── NỘI DUNG CÁC CHƯƠNG ───────────────────────────────
+  for (const section of (content.sections || [])) {
+    const level = section.level || 1;
+    const headingMap = { 1: HeadingLevel.HEADING_1, 2: HeadingLevel.HEADING_2, 3: HeadingLevel.HEADING_3 };
+
+    children.push(new Paragraph({
+      heading: headingMap[level] || HeadingLevel.HEADING_2,
+      spacing: { before: level === 1 ? 480 : 240, after: 120 },
+      children: [new TextRun({
+        text: section.heading || '',
+        font: fmt.fontName,
+        size: ptToHalfPt(level === 1 ? fmt.fontSize + 1 : fmt.fontSize),
+        bold: true,
+        color: level === 1 ? '1A252F' : '2C3E50',
+      })]
+    }));
+
+    if (section.content?.trim()) {
+      const paragraphs = section.content.split('\n').filter(p => p.trim());
+      for (const para of paragraphs) {
+        children.push(new Paragraph({
+          alignment: AlignmentType.JUSTIFIED,
+          indent: { firstLine: cmToTwip(1.25) },
+          spacing: paraSpacing,
+          children: [new TextRun({ text: para.trim(), ...defaultRun })]
+        }));
+      }
+    }
+  }
+
+  const doc = new Document({
+    sections: [{
+      properties: {
+        page: {
+          margin: {
+            top: cmToTwip(fmt.marginTop),
+            bottom: cmToTwip(fmt.marginBottom),
+            left: cmToTwip(fmt.marginLeft),
+            right: cmToTwip(fmt.marginRight),
+          }
+        }
+      },
+      children
+    }]
+  });
+
+  return await Packer.toBlob(doc);
+}
+
+// ─── SHOW RESULT ─────────────────────────────────────────
+function showResult(content, fmt) {
+  document.getElementById('progress-section').style.display = 'none';
+  document.getElementById('result-section').style.display = 'block';
+
+  document.getElementById('result-title').textContent = '📄 ' + (content.title || 'Tài liệu đã sẵn sàng!');
+  document.getElementById('result-sub').textContent =
+    `Font ${fmt.fontName} ${fmt.fontSize}pt · Lề T${fmt.marginLeft}/P${fmt.marginRight} · Giãn dòng ${fmt.lineSpacing}`;
+
+  // Preview
+  const preview = document.getElementById('preview-box');
+  const previewSections = (content.sections || []).slice(0, 8);
+  preview.innerHTML = previewSections.map(s => `
+    <div class="preview-section-title" style="padding-left:${(s.level-1)*16}px">${s.heading}</div>
+    ${s.content ? `<div class="preview-section-content" style="padding-left:${(s.level-1)*16}px">${s.content.substring(0,200)}${s.content.length > 200 ? '...' : ''}</div>` : ''}
+  `).join('') + (content.sections?.length > 8 ? `<div class="preview-section-content" style="margin-top:8px;color:var(--text3);">... và ${content.sections.length - 8} mục khác</div>` : '');
+}
+
+// ─── DOWNLOAD ────────────────────────────────────────────
+function downloadFile() {
+  if (generatedDoc) {
+    saveAs(generatedDoc, generatedFilename);
+  }
+}
+
+// ─── RESET ───────────────────────────────────────────────
+function resetForm() {
+  document.getElementById('result-section').style.display = 'none';
+  document.getElementById('form-section').style.display = 'block';
+  generatedDoc = null;
+  clearError();
+}
+
+// ─── UTILS ───────────────────────────────────────────────
+function slugify(str) {
+  return str
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd').replace(/Đ/g, 'd')
+    .replace(/[^a-z0-9\s]/g, '')
+    .trim().replace(/\s+/g, '-')
+    .substring(0, 50) || 'tai-lieu';
+}
+</script>
+</body>
+</html>
