@@ -805,7 +805,7 @@ async function startGenerate() {
 
     const defaultStructure = getDefaultStructure(docType);
 
-    const prompt = `You are an academic document writer. Generate ONLY valid JSON output, nothing else.
+    const prompt = `You are an academic document writer. Output ONLY valid JSON on a single line.
 
 TOPIC: ${topic}
 DOCUMENT TYPE: ${docTypeLabel}
@@ -821,16 +821,18 @@ REQUIREMENTS:
 - Use "[data needed]" instead of making up numbers
 - Consistent tone and logic
 
-OUTPUT FORMAT - ONLY THIS JSON, NO OTHER TEXT:
-{"title":"full topic name","docType":"${docTypeLabel}","sections":[{"heading":"Section name","level":1,"content":"Section content as single paragraph"},{"heading":"Subsection","level":2,"content":"Content here"}]}
+OUTPUT - Single line JSON only:
+{"title":"full topic name","docType":"${docTypeLabel}","sections":[{"heading":"Section name","level":1,"content":"Content as single line"},{"heading":"Subsection","level":2,"content":"Content here"}]}
 
-CRITICAL RULES:
+CRITICAL:
+- NEVER use newlines in JSON string values - use spaces only
+- NEVER add markdown backticks
+- NEVER include explanatory text
 - Every quote in content must be escaped: \\"
-- No real newlines in strings (use spaces)
-- Must be valid JSON parseable
-- No markdown, no extra text, no backticks
-- Fields: heading (string), level (1/2/3), content (string)
-- Return ONLY the JSON object`;
+- Must be valid, parseable JSON
+- Fields only: heading, level (1/2/3), content
+- Return ONLY the JSON object as ONE LINE`;
+
 
 
 
@@ -849,33 +851,55 @@ CRITICAL RULES:
     }
 
     const data = await response.json();
-    const rawText = data.content.map(c => c.text || '').join('').trim();
+    let rawText = data.content.map(c => c.text || '').join('').trim();
 
     console.log('AI Response (first 500 chars):', rawText.substring(0, 500));
 
+    // Pre-process: fix unescaped newlines in JSON strings
+    // This regex finds content values and replaces newlines with spaces
+    rawText = rawText.replace(/"content"\s*:\s*"([^"]*)"/g, (match, content) => {
+      // Replace actual newlines with spaces before re-escaping
+      const cleaned = content.replace(/\n/g, ' ').replace(/\r/g, '');
+      return `"content":"${cleaned}"`;
+    });
+
     let parsed;
     try {
-      // Direct parse - Claude should return only JSON
+      // Direct parse
       parsed = JSON.parse(rawText);
+      console.log('Direct parse succeeded');
     } catch(e) {
-      console.warn('Direct parse failed, trying extraction...', e.message);
+      console.warn('Direct parse failed:', e.message);
       
-      // Remove markdown code blocks if present
+      // Remove markdown code blocks
       let cleaned = rawText.replace(/^```json\n?|^```\n?|\n*```$/gm, '').trim();
       
       try {
         parsed = JSON.parse(cleaned);
+        console.log('Cleaned parse succeeded');
       } catch(e2) {
-        // Last resort: extract JSON object
+        console.warn('Cleaned parse failed:', e2.message);
+        
+        // Try to extract and fix JSON with aggressive newline replacement
         const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
+          let jsonStr = jsonMatch[0];
+          // Replace all newlines that appear within quoted strings
+          jsonStr = jsonStr.replace(/(?<="[^"]*)\n(?=[^"]*")/g, ' ');
+          
           try {
-            parsed = JSON.parse(jsonMatch[0]);
+            parsed = JSON.parse(jsonStr);
+            console.log('Extracted and fixed parse succeeded');
           } catch(e3) {
-            throw new Error(`JSON invalid: ${e3.message}`);
+            console.error('All parse attempts failed:', {
+              direct: e.message,
+              cleaned: e2.message,
+              extracted: e3.message
+            });
+            throw new Error(`Cannot parse JSON: ${e3.message}`);
           }
         } else {
-          throw new Error(`No JSON found in response: ${rawText.substring(0, 200)}`);
+          throw new Error(`No JSON object found in response`);
         }
       }
     }
