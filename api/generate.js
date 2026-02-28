@@ -1,7 +1,7 @@
 // api/generate.js — Vercel Serverless Function
 // File này chạy trên server, user không thể thấy API key
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   // Chỉ cho phép POST
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
