@@ -32,7 +32,7 @@ module.exports = async function handler(req, res) {
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 4000,
+        max_tokens: 4096,
         messages: [{ role: 'user', content: prompt }],
       }),
     });

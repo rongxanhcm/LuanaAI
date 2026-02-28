@@ -853,58 +853,42 @@ CRITICAL:
     const data = await response.json();
     let rawText = data.content.map(c => c.text || '').join('').trim();
 
-    console.log('AI Response (first 500 chars):', rawText.substring(0, 500));
+    console.log('Raw response length:', rawText.length);
+    console.log('First 500 chars:', rawText.substring(0, 500));
 
-    // Pre-process: fix unescaped newlines in JSON strings
-    // This regex finds content values and replaces newlines with spaces
-    rawText = rawText.replace(/"content"\s*:\s*"([^"]*)"/g, (match, content) => {
-      // Replace actual newlines with spaces before re-escaping
-      const cleaned = content.replace(/\n/g, ' ').replace(/\r/g, '');
-      return `"content":"${cleaned}"`;
-    });
+    // Aggressive fix: Replace ALL newlines and carriage returns with spaces
+    // This works because Claude outputs JSON on a single line with newlines IN the string values
+    rawText = rawText.replace(/\r?\n/g, ' ');
+    
+    // Remove markdown code blocks if present
+    rawText = rawText.replace(/^```json\s*|^```\s*|\s*```$/g, '').trim();
+
+    console.log('After cleaning:', rawText.substring(0, 500));
 
     let parsed;
     try {
-      // Direct parse
       parsed = JSON.parse(rawText);
-      console.log('Direct parse succeeded');
+      console.log('✓ Parse succeeded');
     } catch(e) {
-      console.warn('Direct parse failed:', e.message);
+      console.error('Parse failed:', e.message);
       
-      // Remove markdown code blocks
-      let cleaned = rawText.replace(/^```json\n?|^```\n?|\n*```$/gm, '').trim();
-      
-      try {
-        parsed = JSON.parse(cleaned);
-        console.log('Cleaned parse succeeded');
-      } catch(e2) {
-        console.warn('Cleaned parse failed:', e2.message);
-        
-        // Try to extract and fix JSON with aggressive newline replacement
-        const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          let jsonStr = jsonMatch[0];
-          // Replace all newlines that appear within quoted strings
-          jsonStr = jsonStr.replace(/(?<="[^"]*)\n(?=[^"]*")/g, ' ');
-          
-          try {
-            parsed = JSON.parse(jsonStr);
-            console.log('Extracted and fixed parse succeeded');
-          } catch(e3) {
-            console.error('All parse attempts failed:', {
-              direct: e.message,
-              cleaned: e2.message,
-              extracted: e3.message
-            });
-            throw new Error(`Cannot parse JSON: ${e3.message}`);
-          }
-        } else {
-          throw new Error(`No JSON object found in response`);
+      // Last resort: extract JSON object and try again
+      const jsonMatch = rawText.match(/\{.*\}/);
+      if (jsonMatch) {
+        try {
+          parsed = JSON.parse(jsonMatch[0]);
+          console.log('✓ Extraction succeeded');
+        } catch(e2) {
+          console.error('Extraction also failed:', e2.message);
+          console.log('Sample around error position:', rawText.substring(7800, 7900));
+          throw new Error(`JSON parsing failed: ${e2.message}`);
         }
+      } else {
+        throw new Error('No JSON object found in response');
       }
     }
 
-    console.log('Successfully parsed JSON:', { 
+    console.log('Parsed:', { 
       title: parsed.title?.substring(0, 50),
       sections: parsed.sections?.length 
     });
