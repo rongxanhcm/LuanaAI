@@ -805,7 +805,7 @@ async function startGenerate() {
 
     const defaultStructure = getDefaultStructure(docType);
 
-    const prompt = `You are an academic document writer. Output ONLY valid JSON on a single line.
+    const prompt = `Write an academic document in Vietnamese about the following topic.
 
 TOPIC: ${topic}
 DOCUMENT TYPE: ${docTypeLabel}
@@ -815,23 +815,29 @@ ${description ? `DESCRIPTION: ${description}` : ''}
 STRUCTURE:
 ${structure || defaultStructure}
 
-REQUIREMENTS:
-- Write in Vietnamese, academic style
-- Each section 150-300 words
-- Use "[data needed]" instead of making up numbers
-- Consistent tone and logic
+Write 150-300 words per section in academic Vietnamese.
 
-OUTPUT - Single line JSON only:
-{"title":"full topic name","docType":"${docTypeLabel}","sections":[{"heading":"Section name","level":1,"content":"Content as single line"},{"heading":"Subsection","level":2,"content":"Content here"}]}
+OUTPUT FORMAT - Use this exact delimiter format (easier to parse than JSON):
+---SECTION---
+HEADING: Lời mở đầu
+LEVEL: 1
+CONTENT: Your Vietnamese content here (no line breaks, just continuous text)
+---SECTION---
+HEADING: Chương 1: Cơ sở lý thuyết
+LEVEL: 1
+CONTENT: Your Vietnamese content here
+---SECTION---
+HEADING: 1.1 Khái niệm cơ bản
+LEVEL: 2
+CONTENT: Your Vietnamese content here
 
-CRITICAL:
-- NEVER use newlines in JSON string values - use spaces only
-- NEVER add markdown backticks
-- NEVER include explanatory text
-- Every quote in content must be escaped: \\"
-- Must be valid, parseable JSON
-- Fields only: heading, level (1/2/3), content
-- Return ONLY the JSON object as ONE LINE`;
+Rules:
+- Start each section with ---SECTION---
+- Use HEADING:, LEVEL:, CONTENT: labels
+- Level 1 = main chapters, Level 2 = subsections
+- No line breaks within CONTENT
+- Write naturally in Vietnamese (quotes are fine)`;
+
 
 
 
@@ -853,45 +859,37 @@ CRITICAL:
     const data = await response.json();
     let rawText = data.content.map(c => c.text || '').join('').trim();
 
-    console.log('Raw response length:', rawText.length);
-    console.log('First 500 chars:', rawText.substring(0, 500));
+    console.log('Response length:', rawText.length, 'chars');
 
-    // Aggressive fix: Replace ALL newlines and carriage returns with spaces
-    // This works because Claude outputs JSON on a single line with newlines IN the string values
-    rawText = rawText.replace(/\r?\n/g, ' ');
-    
-    // Remove markdown code blocks if present
-    rawText = rawText.replace(/^```json\s*|^```\s*|\s*```$/g, '').trim();
+    // Parse delimiter format instead of JSON
+    const sections = [];
+    const sectionBlocks = rawText.split('---SECTION---').filter(s => s.trim());
 
-    console.log('After cleaning:', rawText.substring(0, 500));
+    for (const block of sectionBlocks) {
+      const headingMatch = block.match(/HEADING:\s*(.+?)(?:\n|LEVEL:)/s);
+      const levelMatch = block.match(/LEVEL:\s*(\d+)/);
+      const contentMatch = block.match(/CONTENT:\s*(.+?)(?:\n---SECTION---|$)/s);
 
-    let parsed;
-    try {
-      parsed = JSON.parse(rawText);
-      console.log('✓ Parse succeeded');
-    } catch(e) {
-      console.error('Parse failed:', e.message);
-      
-      // Last resort: extract JSON object and try again
-      const jsonMatch = rawText.match(/\{.*\}/);
-      if (jsonMatch) {
-        try {
-          parsed = JSON.parse(jsonMatch[0]);
-          console.log('✓ Extraction succeeded');
-        } catch(e2) {
-          console.error('Extraction also failed:', e2.message);
-          console.log('Sample around error position:', rawText.substring(7800, 7900));
-          throw new Error(`JSON parsing failed: ${e2.message}`);
-        }
-      } else {
-        throw new Error('No JSON object found in response');
+      if (headingMatch && levelMatch) {
+        sections.push({
+          heading: headingMatch[1].trim(),
+          level: parseInt(levelMatch[1]),
+          content: contentMatch ? contentMatch[1].trim() : ''
+        });
       }
     }
 
-    console.log('Parsed:', { 
-      title: parsed.title?.substring(0, 50),
-      sections: parsed.sections?.length 
-    });
+    console.log('✓ Parsed', sections.length, 'sections');
+
+    if (sections.length === 0) {
+      throw new Error('Could not parse any sections from AI response');
+    }
+
+    const parsed = {
+      title: topic,
+      docType: docTypeLabel,
+      sections: sections
+    };
 
     await stepProgress(3, 'Áp dụng format Word...');
 
