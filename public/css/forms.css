@@ -1,0 +1,199 @@
+/* ========================================
+   FORMS & INPUTS
+   ======================================== */
+
+.field {
+  margin-bottom: 24px;
+  animation: fadeInUp 0.5s ease-out backwards;
+}
+
+.field:nth-child(1) { animation-delay: 0.05s; }
+.field:nth-child(2) { animation-delay: 0.1s; }
+.field:nth-child(3) { animation-delay: 0.15s; }
+.field:nth-child(4) { animation-delay: 0.2s; }
+.field:nth-child(5) { animation-delay: 0.25s; }
+.field:nth-child(6) { animation-delay: 0.3s; }
+
+.field label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text2);
+  margin-bottom: 8px;
+  letter-spacing: 0.3px;
+  transition: all 0.3s ease;
+}
+
+.field:focus-within label {
+  color: var(--orange);
+}
+
+.field label span {
+  color: var(--text3);
+  font-weight: 400;
+  font-size: 11px;
+  transition: color 0.3s ease;
+}
+
+.field:focus-within label span {
+  color: var(--orange);
+}
+
+input[type="text"], 
+input[type="number"], 
+textarea, 
+select {
+  width: 100%;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  color: var(--text);
+  font-family: var(--ff-sans);
+  font-size: 14px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  outline: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  appearance: none;
+  -webkit-appearance: none;
+  box-shadow: var(--shadow-sm);
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--orange);
+  background: var(--surface);
+  box-shadow: 0 0 0 3px var(--orange-pale);
+}
+
+input[type="text"]:hover,
+input[type="number"]:hover,
+textarea:hover,
+select:hover {
+  border-color: var(--border2);
+  background: var(--surface2);
+}
+
+textarea { 
+  resize: vertical; 
+  min-height: 80px; 
+}
+
+select { 
+  cursor: pointer; 
+}
+
+select option { 
+  background: var(--surface); 
+}
+
+/* ─── CHARACTER COUNTER ─── */
+.char-counter {
+  font-size: 11px;
+  color: var(--text3);
+  text-align: right;
+  margin-top: 6px;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+}
+
+.char-counter.warning {
+  color: #FFA500;
+  animation: pulse-warn 0.6s ease infinite;
+}
+
+.char-counter.error { 
+  color: var(--red); 
+}
+
+/* ─── FIELD VALIDATION ─── */
+.field.invalid input,
+.field.invalid textarea,
+.field.invalid select {
+  border-color: var(--red) !important;
+  background: rgba(239,68,68,0.05) !important;
+  animation: shake 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  box-shadow: 0 0 0 3px rgba(239,68,68,0.1) !important;
+}
+
+.field.invalid label { 
+  color: var(--red); 
+  font-weight: 600; 
+}
+
+.field.invalid input::placeholder,
+.field.invalid textarea::placeholder {
+  color: rgba(239,68,68,0.5);
+}
+
+/* ─── ERROR MESSAGE ─── */
+.error-msg {
+  background: linear-gradient(135deg, rgba(239,68,68,0.08), rgba(239,68,68,0.04));
+  border: 1.5px solid rgba(239,68,68,0.4);
+  color: var(--red);
+  padding: 14px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-top: 16px;
+  display: none;
+  animation: slideInDown 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-sm);
+  letter-spacing: 0.3px;
+  font-weight: 500;
+}
+
+.error-msg::before {
+  content: '⚠ ';
+  font-weight: 600;
+  margin-right: 6px;
+}
+
+/* ─── TOGGLE ─── */
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+  padding: 12px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  margin: -12px;
+}
+
+.toggle-row:hover {
+  background: var(--orange-pale);
+}
+
+.toggle-row label { 
+  cursor: pointer; 
+  transition: color 0.3s ease; 
+}
+
+.toggle-row:hover label { 
+  color: var(--orange); 
+}
+
+.toggle-arrow {
+  color: var(--text3);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 12px;
+}
+
+.toggle-arrow.open { 
+  transform: rotate(180deg); 
+}
+
+.collapsible {
+  overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+  max-height: 0;
+  opacity: 0;
+}
+
+.collapsible.open {
+  max-height: 600px;
+  opacity: 1;
+}

@@ -1,0 +1,46 @@
+/* ========================================
+   CSS VARIABLES
+   ======================================== */
+
+*, *::before, *::after { 
+  box-sizing: border-box; 
+  margin: 0; 
+  padding: 0; 
+}
+
+:root {
+  /* Brand Colors from Luana Logo */
+  --navy: #060952;
+  --navy-light: #0f1275;
+  --navy-lighter: #1a1d9a;
+  --navy-pale: #e8e9f7;
+  --orange: #ee7b31;
+  --orange-light: #ff8f4a;
+  --orange-pale: #fff2eb;
+  
+  /* Light Theme */
+  --bg: #fafbfc;
+  --surface: #ffffff;
+  --surface2: #f5f6f8;
+  --border: #e1e4e8;
+  --border2: #d1d5da;
+  
+  /* Text Colors */
+  --text: #060952;
+  --text2: #5a6070;
+  --text3: #9ca3af;
+  
+  /* Status Colors */
+  --green: #10b981;
+  --red: #ef4444;
+  
+  /* Typography */
+  --ff-serif: 'Lora', Georgia, serif;
+  --ff-sans: 'IBM Plex Sans Thai', system-ui, sans-serif;
+  --ff-mono: 'IBM Plex Mono', monospace;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 3px 0 rgba(6, 9, 82, 0.08);
+  --shadow-md: 0 4px 12px 0 rgba(6, 9, 82, 0.12);
+  --shadow-lg: 0 12px 32px 0 rgba(6, 9, 82, 0.15);
+}

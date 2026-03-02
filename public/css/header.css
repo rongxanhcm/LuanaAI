@@ -1,0 +1,72 @@
+/* ========================================
+   HEADER & LOGO
+   ======================================== */
+
+header {
+  border-bottom: 1px solid var(--border);
+  padding: 20px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky; 
+  top: 0; 
+  z-index: 100;
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(12px);
+  box-shadow: var(--shadow-sm);
+  animation: slideInDown 0.5s ease-out;
+}
+
+.logo {
+  font-family: var(--ff-serif);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.5px;
+  transition: all 0.3s ease;
+}
+
+.logo:hover { 
+  color: var(--orange); 
+}
+
+.logo span { 
+  color: var(--orange); 
+  transition: color 0.3s ease; 
+}
+
+.logo:hover span { 
+  color: var(--orange-light); 
+}
+
+.logo-icon {
+  filter: drop-shadow(0 2px 4px rgba(6,9,82,0.15));
+  transition: all 0.3s ease;
+}
+
+.logo:hover .logo-icon {
+  filter: drop-shadow(0 4px 12px rgba(238,123,49,0.4));
+}
+
+.badge {
+  font-family: var(--ff-mono);
+  font-size: 10px;
+  color: var(--text3);
+  border: 1px solid var(--orange);
+  padding: 4px 10px;
+  border-radius: 4px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  background: var(--orange-pale);
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.badge:hover {
+  border-color: var(--orange);
+  color: var(--orange);
+  background: var(--orange-light);
+  background: linear-gradient(135deg, var(--orange-pale), #fff7f2);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
