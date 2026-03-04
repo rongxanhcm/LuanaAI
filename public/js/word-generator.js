@@ -2,6 +2,11 @@
    WORD DOCUMENT GENERATOR
    ======================================== */
 
+// Note: The docx library v8.5.0 supports page numbering via footer insertion,
+// but does NOT support Roman numeral formatting through its API.
+// Current implementation uses Arabic numbers (1, 2, 3...) for all page numbers.
+// Future enhancement: Implement Roman numeral support via field codes or manual conversion.
+
 // ─── CREATE PAGE NUMBER FOOTER ──────────────────────────
 function createPageNumberFooter(fmt, numberFormat, alignment = 'center') {
   const { Footer, Paragraph, TextRun, AlignmentType, PageNumber } = window.docx;
@@ -37,8 +42,7 @@ async function buildDocx(content, fmt, cover) {
   const {
     Document, Packer, Paragraph, TextRun,
     HeadingLevel, AlignmentType, TableOfContents,
-    ImageRun, PageBreak, Tab, PageNumber, Footer,
-    PageNumberFormat
+    ImageRun, PageBreak, Tab, PageNumber, Footer
   } = window.docx;
 
   const cmToTwip = cm => Math.round(cm * 566.93);
@@ -207,10 +211,6 @@ async function buildDocx(content, fmt, cover) {
           bottom: cmToTwip(fmt.marginBottom),
           left: cmToTwip(fmt.marginLeft),
           right: cmToTwip(fmt.marginRight),
-        },
-        pageNumbers: {
-          start: 1,
-          formatType: PageNumberFormat.DECIMAL
         }
       }
     },
@@ -247,12 +247,6 @@ async function buildDocx(content, fmt, cover) {
           bottom: cmToTwip(fmt.marginBottom),
           left: cmToTwip(fmt.marginLeft),
           right: cmToTwip(fmt.marginRight),
-        },
-        pageNumbers: {
-          start: pageRules.frontMatter.start || 1,
-          formatType: pageRules.frontMatter.format === 'lowerRoman' 
-            ? PageNumberFormat.LOWER_ROMAN 
-            : PageNumberFormat.DECIMAL
         }
       }
     },
@@ -269,10 +263,6 @@ async function buildDocx(content, fmt, cover) {
           bottom: cmToTwip(fmt.marginBottom),
           left: cmToTwip(fmt.marginLeft),
           right: cmToTwip(fmt.marginRight),
-        },
-        pageNumbers: {
-          start: pageRules.mainContent.start || 1,
-          formatType: PageNumberFormat.DECIMAL
         }
       }
     },

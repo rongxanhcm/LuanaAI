@@ -63,9 +63,9 @@ Luana automatically applies academic page numbering standards based on document 
 
 ### **Luận văn / Khóa luận tốt nghiệp** (Thesis)
 - **Cover page**: No page number
-- **Front matter** (Lời cam đoan, Lời cảm ơn, Tóm tắt, Mục lục): Roman numerals (i, ii, iii, iv...)
-- **Main content** (Mở đầu, Chapters, Kết luận): Arabic numerals (1, 2, 3...), resets to 1
-- **References & Appendix**: Arabic numerals (continues)
+- **Front matter** (Lời cam đoan, Lời cảm ơn, Tóm tắt, Mục lục): Page numbers (centered bottom)
+- **Main content** (Mở đầu, Chapters, Kết luận): Separate page numbering (1, 2, 3...), resets starting from 1
+- **References & Appendix**: Continues from main content page numbers
 
 ### **Đồ án môn học** (Project Report)
 - Same as thesis format with full academic standards
@@ -73,14 +73,17 @@ Luana automatically applies academic page numbering standards based on document 
 ### **Tiểu luận** (Essay/Assignment)
 - **Cover page**: No page number
 - **Table of contents**: No numbering
-- **Main content**: Arabic numerals starting from 1
+- **Main content**: Page numbers starting from 1
 
 ### **Báo cáo thực tập** (Internship Report)
 - **Cover page**: No page number
-- **Front matter**: Roman numerals (i, ii, iii...)
-- **Main content**: Arabic numerals starting from 1
+- **Front matter**: Page numbers (centered bottom)
+- **Main content**: Separate page numbering starting from 1
 
-> **Note**: All page numbers are centered at the bottom of each page.
+> **Note on numbering format**: 
+> - Current version uses **Arabic numerals** (1, 2, 3...) for all page numbers
+> - Roman numeral support for front matter is planned for a future release
+> - All page numbers are centered at the bottom of each page
 
 ---
 

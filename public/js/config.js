@@ -37,6 +37,10 @@ const PRESETS = {
 };
 
 // ─── PAGE NUMBERING RULES BY DOCUMENT TYPE ──────────────
+// NOTE: The 'format' field defines the intended numbering style.
+// Current implementation supports 'decimal' (1, 2, 3...) only.
+// 'lowerRoman' (i, ii, iii...) is reserved for future enhancement.
+// The docx library v8.5.0 does not natively support Roman numeral formatting.
 const PAGE_NUMBERING_RULES = {
   // Luận văn / Khóa luận: Quy chuẩn đầy đủ
   luan_van: {
