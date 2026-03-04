@@ -32,6 +32,11 @@ Generate complete academic documents with AI. Input your topic → Choose templa
 
 📄 **Document Export**
 - Generate .docx files with proper formatting
+- **Smart page numbering** based on document type
+  - Luận văn/Đồ án: Roman numerals (i, ii, iii) for front matter, Arabic (1, 2, 3) for content
+  - Tiểu luận: Simple Arabic numbering
+  - Thực tập: Mixed Roman/Arabic based on academic standards
+- Automatic Table of Contents with proper section hierarchy
 - Custom fonts (Times New Roman, Calibri, etc.)
 - Configurable margins and line spacing
 - Optional logo and README embedding
@@ -52,7 +57,34 @@ Generate complete academic documents with AI. Input your topic → Choose templa
 
 ---
 
-## 🛠 Tech Stack
+## � Page Numbering Rules
+
+Luana automatically applies academic page numbering standards based on document type:
+
+### **Luận văn / Khóa luận tốt nghiệp** (Thesis)
+- **Cover page**: No page number
+- **Front matter** (Lời cam đoan, Lời cảm ơn, Tóm tắt, Mục lục): Roman numerals (i, ii, iii, iv...)
+- **Main content** (Mở đầu, Chapters, Kết luận): Arabic numerals (1, 2, 3...), resets to 1
+- **References & Appendix**: Arabic numerals (continues)
+
+### **Đồ án môn học** (Project Report)
+- Same as thesis format with full academic standards
+
+### **Tiểu luận** (Essay/Assignment)
+- **Cover page**: No page number
+- **Table of contents**: No numbering
+- **Main content**: Arabic numerals starting from 1
+
+### **Báo cáo thực tập** (Internship Report)
+- **Cover page**: No page number
+- **Front matter**: Roman numerals (i, ii, iii...)
+- **Main content**: Arabic numerals starting from 1
+
+> **Note**: All page numbers are centered at the bottom of each page.
+
+---
+
+## �🛠 Tech Stack
 
 **Frontend**
 - Vanilla HTML5/CSS3/JavaScript (no frameworks!)
@@ -90,11 +122,11 @@ f:\docgen-vn/
 │   │   ├── components.css      ← Upload, progress, results
 │   │   └── animations.css      ← Keyframe animations
 │   ├── js/                     ← Modular JavaScript
-│   │   ├── config.js           ← Format presets configuration
+│   │   ├── config.js           ← Format presets & page numbering rules
 │   │   ├── validation.js       ← Form validation logic
 │   │   ├── upload.js           ← File upload handlers
 │   │   ├── structure-parser.js ← Template definitions
-│   │   ├── word-generator.js   ← .docx generation
+│   │   ├── word-generator.js   ← .docx generation with multi-section support
 │   │   ├── api.js              ← Claude API calls
 │   │   ├── ui.js               ← UI updates & interactions
 │   │   └── main.js             ← App initialization
@@ -353,6 +385,24 @@ How to get:
 
 ---
 
+## 🎯 Development Priorities
+
+### Why This Order?
+
+| Priority | Feature | Why | Timeline |
+|----------|---------|-----|----------|
+| **P1** | 🎨 Dark Mode | Trend, UX improvement, quick win | Week 1 |
+| **P1** | 📚 History & Auto-save | Prevent data loss, core UX | Week 1-2 |
+| **P1** | ✏️ Edit Generated Content | Quality control before download | Week 2 |
+| **P2** | 📖 Bibliography | University requirement (critical for thesis) | Week 3-4 |
+| **P2** | 📥 PDF Export | Format diversity, accessibility | Week 3 |
+| **P3** | 👤 User Accounts | Sticky users, cloud sync foundation | Week 5-6 |
+| **P3** | 💬 Multi-language | Market expansion to English/French | Week 7-8 |
+| **P4** | 🎨 Template Builder | Reduce dev load, user customization | Week 9-12 |
+| **P5** | 📱 Mobile App | Enterprise reach, accessibility | Month 2+ |
+
+---
+
 ## 🤝 Contributing
 
 ### Report Issues
@@ -401,15 +451,50 @@ MIT License 2024 - See LICENSE file for details
 
 ## 🚀 Roadmap
 
-- [ ] PDF export support
-- [ ] Custom template builder UI
-- [ ] Collaboration features (share documents)
-- [ ] History & save documents
-- [ ] Multiple language support
-- [ ] Image/table insertion
-- [ ] Bibliography auto-generation
-- [ ] Google Docs integration
-- [ ] Mobile app
+### 🔥 **Phase 1 (Week 1-2) — Core Features**
+- [x] Basic document generation
+- [x] 6 document templates
+- [x] .docx export
+- [ ] 🎨 Dark Mode & Light Theme Toggle
+- [ ] 📚 Local Storage History (auto-save drafts & document history)
+- [ ] ✏️ Edit Generated Content (preview + modify before download)
+- [ ] 📥 PDF Export Support
+
+### 🚀 **Phase 2 (Week 3-4) — Quality & Standards**
+- [ ] 📖 Bibliography Auto-Generation (APA, Harvard, Chicago styles)
+- [ ] 📊 Table of Contents Auto-Generation
+- [ ] 🎯 Advanced Template Customization
+- [ ] 📸 Image/Table Insertion Support
+- [ ] 🔤 Better Font & Typography Settings
+
+### ⭐ **Phase 3 (Week 5-8) — User Experience**
+- [ ] 👤 User Accounts & Authentication (Firebase/Supabase)
+- [ ] ☁️ Cloud Sync & Multi-Device Access
+- [ ] 💬 Multiple Language Support (English, French, etc.)
+- [ ] 🌙 Theme Persistence & User Preferences
+- [ ] 📈 Document Generation Analytics Dashboard
+- [ ] 🔄 Batch Document Generation
+
+### 💎 **Phase 4 (Week 9-12) — Advanced**
+- [ ] 🎨 Custom Template Builder UI (Drag-and-drop editor)
+- [ ] 🤖 AI Customization (tone, formality, depth control)
+- [ ] 👥 Collaboration Features (share, co-editing, comments)
+- [ ] 🏗️ Preset Improvements (university-specific formats)
+- [ ] 🎁 AI Model Selection & Comparison UI
+
+### 🌟 **Phase 5 (Month 2-3) — Enterprise**
+- [ ] 📱 Mobile App (React Native / Flutter)
+- [ ] 🔗 Google Docs Integration
+- [ ] 🌐 API for Third-party Apps
+- [ ] 🔐 Enhanced Security & Rate Limiting
+- [ ] 📊 Advanced Analytics & Reporting
+
+### 🎯 **Backlog — Future Considerations**
+- [ ] Offline Document Generation
+- [ ] Real-time Collaboration UI
+- [ ] Built-in Plagiarism Checker
+- [ ] Voice Input / Dictation
+- [ ] Document Comparison & Version Control
 
 ---
 

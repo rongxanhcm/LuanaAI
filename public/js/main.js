@@ -133,6 +133,7 @@ async function startGenerate() {
     const parsed = {
       title: topic,
       docType: docTypeLabel,
+      docTypeKey: docType, // Pass document type key for page numbering rules
       sections: allSections
     };
 

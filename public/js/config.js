@@ -35,3 +35,72 @@ const PRESETS = {
   },
   custom: null
 };
+
+// ─── PAGE NUMBERING RULES BY DOCUMENT TYPE ──────────────
+const PAGE_NUMBERING_RULES = {
+  // Luận văn / Khóa luận: Quy chuẩn đầy đủ
+  luan_van: {
+    cover: { numbering: false }, // Bìa: không đánh số
+    frontMatter: { 
+      numbering: true, 
+      format: 'lowerRoman', // i, ii, iii
+      start: 1,
+      sections: ['Lời cam đoan', 'Lời cảm ơn', 'Tóm tắt', 'Mục lục', 'Danh sách hình', 'Danh sách bảng']
+    },
+    mainContent: { 
+      numbering: true, 
+      format: 'decimal', // 1, 2, 3
+      start: 1, // Reset về 1
+      sections: ['Mở đầu', 'Chương', 'Kết luận', 'Tài liệu tham khảo', 'Phụ lục']
+    }
+  },
+
+  // Đồ án môn học: Giống luận văn
+  do_an: {
+    cover: { numbering: false },
+    frontMatter: { 
+      numbering: true, 
+      format: 'lowerRoman',
+      start: 1,
+      sections: ['Lời cam đoan', 'Lời cảm ơn', 'Tóm tắt', 'Mục lục', 'Danh sách hình', 'Danh sách bảng']
+    },
+    mainContent: { 
+      numbering: true, 
+      format: 'decimal',
+      start: 1,
+      sections: ['Chương', 'Kết luận', 'Tài liệu tham khảo', 'Phụ lục']
+    }
+  },
+
+  // Tiểu luận: Đơn giản hơn
+  tieu_luan: {
+    cover: { numbering: false },
+    frontMatter: { 
+      numbering: false, // Không đánh số phần mục lục
+      sections: ['Mục lục']
+    },
+    mainContent: { 
+      numbering: true, 
+      format: 'decimal',
+      start: 1, // Bắt đầu từ 1 ngay sau bìa
+      sections: ['Mở đầu', 'Phần', 'Kết luận', 'Tài liệu tham khảo']
+    }
+  },
+
+  // Báo cáo thực tập: Tương tự tiểu luận
+  thuc_tap: {
+    cover: { numbering: false },
+    frontMatter: { 
+      numbering: true,
+      format: 'lowerRoman',
+      start: 1,
+      sections: ['Lời cảm ơn', 'Mục lục']
+    },
+    mainContent: { 
+      numbering: true, 
+      format: 'decimal',
+      start: 1,
+      sections: ['Giới thiệu', 'Chương', 'Kết luận', 'Tài liệu tham khảo']
+    }
+  }
+};

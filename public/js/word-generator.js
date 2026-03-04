@@ -2,6 +2,32 @@
    WORD DOCUMENT GENERATOR
    ======================================== */
 
+// ─── CREATE PAGE NUMBER FOOTER ──────────────────────────
+function createPageNumberFooter(fmt, numberFormat, alignment = 'center') {
+  const { Footer, Paragraph, TextRun, AlignmentType, PageNumber } = window.docx;
+  
+  const alignMap = {
+    'center': AlignmentType.CENTER,
+    'left': AlignmentType.LEFT,
+    'right': AlignmentType.RIGHT
+  };
+
+  return new Footer({
+    children: [
+      new Paragraph({
+        alignment: alignMap[alignment] || AlignmentType.CENTER,
+        children: [
+          new TextRun({
+            children: [PageNumber.CURRENT],
+            font: fmt.fontName,
+            size: Math.round(fmt.fontSize * 2)
+          })
+        ]
+      })
+    ]
+  });
+}
+
 // ─── BUILD DOCX ──────────────────────────────────────────
 async function buildDocx(content, fmt, cover) {
   if (typeof window.docx === 'undefined') {
@@ -11,7 +37,8 @@ async function buildDocx(content, fmt, cover) {
   const {
     Document, Packer, Paragraph, TextRun,
     HeadingLevel, AlignmentType, TableOfContents,
-    ImageRun, PageBreak, Tab
+    ImageRun, PageBreak, Tab, PageNumber, Footer,
+    PageNumberFormat
   } = window.docx;
 
   const cmToTwip = cm => Math.round(cm * 566.93);
@@ -22,7 +49,12 @@ async function buildDocx(content, fmt, cover) {
   const defaultRun = { font: fmt.fontName, size: ptToHalfPt(fmt.fontSize) };
   const paraSpacing = { line: lineSpacingVal, lineRule: 'auto', after: spacingAfterVal };
 
-  const children = [];
+  // Get page numbering rules for this document type
+  const docTypeKey = content.docTypeKey || 'luan_van'; // fallback to luan_van
+  const pageRules = PAGE_NUMBERING_RULES[docTypeKey] || PAGE_NUMBERING_RULES.luan_van;
+
+  // ─── SECTION 1: COVER PAGE (No numbering) ───
+  const coverChildren = [];
 
   // ─── COVER PAGE ───
   if (cover.logo) {
@@ -30,7 +62,7 @@ async function buildDocx(content, fmt, cover) {
       const logoBytes = Uint8Array.from(atob(cover.logo), c => c.charCodeAt(0));
       const ext = (cover.logoMime || 'image/png').split('/')[1].toUpperCase();
       const imgType = ext === 'JPG' ? 'JPEG' : (ext === 'SVG' ? 'PNG' : ext);
-      children.push(new Paragraph({
+      coverChildren.push(new Paragraph({
         alignment: AlignmentType.CENTER,
         spacing: { before: 0, after: 200 },
         children: [new ImageRun({
@@ -41,11 +73,11 @@ async function buildDocx(content, fmt, cover) {
       }));
     } catch(e) { console.warn('Logo error:', e); }
   } else {
-    children.push(new Paragraph({ spacing: { before: 0, after: 600 }, children: [new TextRun({ text: '' })] }));
+    coverChildren.push(new Paragraph({ spacing: { before: 0, after: 600 }, children: [new TextRun({ text: '' })] }));
   }
 
   if (cover.university) {
-    children.push(new Paragraph({
+    coverChildren.push(new Paragraph({
       alignment: AlignmentType.CENTER,
       spacing: { after: 80 },
       children: [new TextRun({ text: cover.university.toUpperCase(), font: fmt.fontName, size: ptToHalfPt(14), bold: true })]
@@ -53,33 +85,33 @@ async function buildDocx(content, fmt, cover) {
   }
 
   if (cover.faculty) {
-    children.push(new Paragraph({
+    coverChildren.push(new Paragraph({
       alignment: AlignmentType.CENTER,
       spacing: { after: 600 },
       children: [new TextRun({ text: cover.faculty, font: fmt.fontName, size: ptToHalfPt(13), bold: false })]
     }));
   } else {
-    children.push(new Paragraph({ spacing: { after: 600 }, children: [new TextRun('')] }));
+    coverChildren.push(new Paragraph({ spacing: { after: 600 }, children: [new TextRun('')] }));
   }
 
-  children.push(new Paragraph({
+  coverChildren.push(new Paragraph({
     alignment: AlignmentType.CENTER,
     spacing: { after: 160 },
     children: [new TextRun({ text: content.docType?.toUpperCase() || 'TÀI LIỆU HỌC THUẬT', font: fmt.fontName, size: ptToHalfPt(16), bold: true, allCaps: true })]
   }));
 
-  children.push(new Paragraph({
+  coverChildren.push(new Paragraph({
     alignment: AlignmentType.CENTER,
     spacing: { after: 320 },
     children: [new TextRun({ text: '─────────────────────────────', font: fmt.fontName, size: ptToHalfPt(11), color: 'AAAAAA' })]
   }));
 
-  children.push(new Paragraph({
+  coverChildren.push(new Paragraph({
     alignment: AlignmentType.CENTER,
     spacing: { after: 80 },
     children: [new TextRun({ text: 'ĐỀ TÀI:', font: fmt.fontName, size: ptToHalfPt(13), bold: true, color: '2C3E50' })]
   }));
-  children.push(new Paragraph({
+  coverChildren.push(new Paragraph({
     alignment: AlignmentType.CENTER,
     spacing: { after: 800 },
     children: [new TextRun({ text: content.title || '', font: fmt.fontName, size: ptToHalfPt(17), bold: true, color: '1A252F' })]
@@ -92,7 +124,7 @@ async function buildDocx(content, fmt, cover) {
   if (cover.classInfo)   infoLines.push({ label: 'Lớp / Khóa:', value: cover.classInfo });
 
   for (const line of infoLines) {
-    children.push(new Paragraph({
+    coverChildren.push(new Paragraph({
       alignment: AlignmentType.LEFT,
       indent: { left: cmToTwip(4) },
       spacing: { after: 80 },
@@ -104,16 +136,17 @@ async function buildDocx(content, fmt, cover) {
   }
 
   const year = new Date().getFullYear();
-  children.push(new Paragraph({ spacing: { before: 600, after: 0 }, children: [new TextRun('')] }));
-  children.push(new Paragraph({
+  coverChildren.push(new Paragraph({ spacing: { before: 600, after: 0 }, children: [new TextRun('')] }));
+  coverChildren.push(new Paragraph({
     alignment: AlignmentType.CENTER,
     children: [new TextRun({ text: `TP. Hồ Chí Minh, ${year}`, font: fmt.fontName, size: ptToHalfPt(13) })]
   }));
 
-  children.push(new Paragraph({ pageBreakBefore: true, children: [new TextRun('')] }));
+  // ─── SECTION 2: FRONT MATTER (Table of Contents - Roman numerals or no numbering) ───
+  const frontMatterChildren = [];
 
   // ─── TABLE OF CONTENTS ───
-  children.push(new Paragraph({
+  frontMatterChildren.push(new Paragraph({
     spacing: { after: 200 },
     children: [new TextRun({ text: 'MỤC LỤC', font: fmt.fontName, size: ptToHalfPt(fmt.fontSize + 2), bold: true, allCaps: true })]
   }));
@@ -121,21 +154,23 @@ async function buildDocx(content, fmt, cover) {
   for (const section of (content.sections || [])) {
     const level = section.level || 1;
     const indent = (level - 1) * cmToTwip(0.8);
-    children.push(new Paragraph({
+    frontMatterChildren.push(new Paragraph({
       indent: { left: indent },
       spacing: { after: 60 },
       children: [new TextRun({ text: section.heading || '', font: fmt.fontName, size: ptToHalfPt(fmt.fontSize - 0.5), bold: level === 1, color: level === 1 ? '000000' : '333333' })]
     }));
   }
 
-  children.push(new Paragraph({ pageBreakBefore: true, children: [new TextRun('')] }));
+  // ─── SECTION 3: MAIN CONTENT (Arabic numbers starting from 1) ───
+  const mainContentChildren = [];
+
 
   // ─── CONTENT SECTIONS ───
   for (const section of (content.sections || [])) {
     const level = section.level || 1;
     const headingMap = { 1: HeadingLevel.HEADING_1, 2: HeadingLevel.HEADING_2, 3: HeadingLevel.HEADING_3 };
 
-    children.push(new Paragraph({
+    mainContentChildren.push(new Paragraph({
       heading: headingMap[level] || HeadingLevel.HEADING_2,
       spacing: { before: level === 1 ? 480 : 240, after: 120 },
       children: [new TextRun({
@@ -150,7 +185,7 @@ async function buildDocx(content, fmt, cover) {
     if (section.content?.trim()) {
       const paragraphs = section.content.split('\n').filter(p => p.trim());
       for (const para of paragraphs) {
-        children.push(new Paragraph({
+        mainContentChildren.push(new Paragraph({
           alignment: AlignmentType.JUSTIFIED,
           indent: { firstLine: cmToTwip(1.25) },
           spacing: paraSpacing,
@@ -160,22 +195,107 @@ async function buildDocx(content, fmt, cover) {
     }
   }
 
-  // ─── CREATE DOCUMENT ───
-  const doc = new Document({
-    sections: [{
-      properties: {
-        page: {
-          margin: {
-            top: cmToTwip(fmt.marginTop),
-            bottom: cmToTwip(fmt.marginBottom),
-            left: cmToTwip(fmt.marginLeft),
-            right: cmToTwip(fmt.marginRight),
-          }
+  // ─── CREATE DOCUMENT WITH MULTIPLE SECTIONS ───
+  const sections = [];
+
+  // Section 1: Cover page (no page numbers)
+  sections.push({
+    properties: {
+      page: {
+        margin: {
+          top: cmToTwip(fmt.marginTop),
+          bottom: cmToTwip(fmt.marginBottom),
+          left: cmToTwip(fmt.marginLeft),
+          right: cmToTwip(fmt.marginRight),
+        },
+        pageNumbers: {
+          start: 1,
+          formatType: PageNumberFormat.DECIMAL
         }
-      },
-      children
-    }]
+      }
+    },
+    children: coverChildren
   });
+
+  // Section 2: Front matter (TOC - Roman numerals or no numbering)
+  const frontMatterFooter = pageRules.frontMatter.numbering 
+    ? (pageRules.frontMatter.format === 'lowerRoman' 
+        ? {
+            default: new Footer({
+              children: [
+                new Paragraph({
+                  alignment: AlignmentType.CENTER,
+                  children: [
+                    new TextRun({
+                      children: [PageNumber.CURRENT],
+                      font: fmt.fontName,
+                      size: ptToHalfPt(fmt.fontSize)
+                    })
+                  ]
+                })
+              ]
+            })
+          }
+        : undefined)
+    : undefined;
+
+  sections.push({
+    properties: {
+      page: {
+        margin: {
+          top: cmToTwip(fmt.marginTop),
+          bottom: cmToTwip(fmt.marginBottom),
+          left: cmToTwip(fmt.marginLeft),
+          right: cmToTwip(fmt.marginRight),
+        },
+        pageNumbers: {
+          start: pageRules.frontMatter.start || 1,
+          formatType: pageRules.frontMatter.format === 'lowerRoman' 
+            ? PageNumberFormat.LOWER_ROMAN 
+            : PageNumberFormat.DECIMAL
+        }
+      }
+    },
+    footers: frontMatterFooter ? frontMatterFooter : undefined,
+    children: frontMatterChildren
+  });
+
+  // Section 3: Main content (Arabic numbers starting from 1)
+  sections.push({
+    properties: {
+      page: {
+        margin: {
+          top: cmToTwip(fmt.marginTop),
+          bottom: cmToTwip(fmt.marginBottom),
+          left: cmToTwip(fmt.marginLeft),
+          right: cmToTwip(fmt.marginRight),
+        },
+        pageNumbers: {
+          start: pageRules.mainContent.start || 1,
+          formatType: PageNumberFormat.DECIMAL
+        }
+      }
+    },
+    footers: {
+      default: new Footer({
+        children: [
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            children: [
+              new TextRun({
+                children: [PageNumber.CURRENT],
+                font: fmt.fontName,
+                size: ptToHalfPt(fmt.fontSize)
+              })
+            ]
+          })
+        ]
+      })
+    },
+    children: mainContentChildren
+  });
+
+  const doc = new Document({ sections });
 
   return await Packer.toBlob(doc);
 }
