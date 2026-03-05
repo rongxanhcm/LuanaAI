@@ -36,6 +36,33 @@ const PRESETS = {
   custom: null
 };
 
+const AI_MODEL_OPTIONS = {
+  gemini: [
+    {
+      value: 'gemini-2.5-flash-lite',
+      label: 'Gemini 2.5 Flash-Lite (nhanh)',
+      logo: './gemini-color.svg'
+    },
+    {
+      value: 'gemini-3.1-pro-preview',
+      label: 'Gemini 3.1 Pro Preview (thông minh nhất)',
+      logo: './gemini-color.svg'
+    }
+  ],
+  claude: [
+    {
+      value: 'claude-haiku',
+      label: 'Claude Haiku (nhanh)',
+      logo: './claude-color.svg'
+    },
+    {
+      value: 'claude-sonnet',
+      label: 'Claude Sonnet (thông minh nhất)',
+      logo: './claude-color.svg'
+    }
+  ]
+};
+
 // ─── PAGE NUMBERING RULES BY DOCUMENT TYPE ──────────────
 // NOTE: The 'format' field defines the intended numbering style.
 // Current implementation supports 'decimal' (1, 2, 3...) only.

@@ -4,15 +4,25 @@
 
 // ─── CALL AI API ─────────────────────────────────────────
 async function callAI(prompt) {
+  const provider = document.getElementById('aiProvider')?.value || 'gemini';
   const model = document.getElementById('aiModel')?.value || 'gemini-2.5-flash-lite';
   const response = await fetch('/api/generate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt, model })
+    body: JSON.stringify({ prompt, provider, model })
   });
 
   if (!response.ok) {
-    throw new Error(`API error: ${response.status}`);
+    let errorMsg = `API error: ${response.status}`;
+    try {
+      const errData = await response.json();
+      if (errData?.error) {
+        errorMsg = errData.error;
+      }
+    } catch (_) {
+      // Keep default message when response body is not JSON
+    }
+    throw new Error(errorMsg);
   }
 
   const data = await response.json();

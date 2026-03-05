@@ -87,12 +87,21 @@
         </div>
       </div>
 
-      <div class="field">
-        <label>AI Model <span>(chọn model cho chất lượng tốt hơn)</span></label>
-        <select id="aiModel">
-          <option value="gemini-2.5-flash-lite" selected>🚀 Gemini 2.5 Flash Lite (nhanh & tối ưu)</option>
-          <option value="claude-haiku-4-5">📚 Claude Haiku 4.5 (cân bằng)</option>
-        </select>
+      <div class="grid-2">
+        <div class="field">
+          <label>AI Provider</label>
+          <select id="aiProvider">
+            <option value="gemini" selected>Google Gemini</option>
+            <option value="claude">Anthropic Claude</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>AI Model <span>(nhanh hoặc thông minh nhất)</span></label>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <img id="aiModelLogo" src="./gemini-color.svg" alt="Model" style="width: 28px; height: 28px; border-radius: 4px; flex-shrink: 0;" />
+            <select id="aiModel"></select>
+          </div>
+        </div>
       </div>
 
       <div class="field">

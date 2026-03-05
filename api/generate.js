@@ -11,7 +11,11 @@ module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  const { prompt, model = 'gemini-2.5-flash-lite' } = req.body;
+  const {
+    prompt,
+    provider: rawProvider,
+    model: rawModel
+  } = req.body || {};
 
   if (!prompt) {
     return res.status(400).json({ error: 'Missing prompt' });
@@ -22,10 +26,34 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: 'Prompt quá dài' });
   }
 
+  const MODEL_MAP = {
+    gemini: {
+      'gemini-2.5-flash-lite': 'gemini-2.5-flash-lite',
+      'gemini-3.1-pro-preview': 'gemini-3.1-pro-preview'
+    },
+    claude: {
+      'claude-haiku': process.env.CLAUDE_HAIKU_MODEL || 'claude-haiku-4-5-20251001',
+      'claude-opus': process.env.CLAUDE_OPUS_MODEL || 'claude-opus-4-6'
+    }
+  };
+
+  const inferredProvider = rawProvider
+    || (typeof rawModel === 'string' && rawModel.startsWith('claude') ? 'claude' : 'gemini');
+
+  const provider = MODEL_MAP[inferredProvider] ? inferredProvider : 'gemini';
+  const providerModels = MODEL_MAP[provider];
+  const defaultModelKey = provider === 'claude' ? 'claude-haiku' : 'gemini-2.5-flash-lite';
+  const modelKey = providerModels[rawModel] ? rawModel : defaultModelKey;
+  const model = providerModels[modelKey];
+
   try {
     let response;
 
-    if (model.includes('gemini')) {
+    if (provider === 'gemini') {
+      if (!process.env.GOOGLE_API_KEY) {
+        return res.status(500).json({ error: 'Thiếu GOOGLE_API_KEY trong environment variables' });
+      }
+
       // Google Gemini API
       response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${process.env.GOOGLE_API_KEY}`, {
         method: 'POST',
@@ -45,6 +73,10 @@ module.exports = async function handler(req, res) {
         }),
       });
     } else {
+      if (!process.env.ANTHROPIC_API_KEY) {
+        return res.status(500).json({ error: 'Thiếu ANTHROPIC_API_KEY trong environment variables' });
+      }
+
       // Claude/Anthropic API
       response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
@@ -54,7 +86,7 @@ module.exports = async function handler(req, res) {
           'anthropic-version': '2023-06-01',
         },
         body: JSON.stringify({
-          model: model || 'claude-haiku-4-5-20251001',
+          model,
           max_tokens: 10000,
           messages: [{ role: 'user', content: prompt }],
         }),

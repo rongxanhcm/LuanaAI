@@ -35,6 +35,51 @@ function setupCharacterCounters() {
   });
 }
 
+// ─── AI MODEL SELECTORS ─────────────────────────────────
+function setupAIModelSelectors() {
+  const providerEl = document.getElementById('aiProvider');
+  const modelEl = document.getElementById('aiModel');
+  const logoEl = document.getElementById('aiModelLogo');
+
+  if (!providerEl || !modelEl) return;
+
+  const renderModelOptions = () => {
+    const provider = providerEl.value;
+    const options = AI_MODEL_OPTIONS[provider] || [];
+    const previousModel = modelEl.value;
+
+    modelEl.innerHTML = options
+      .map(opt => {
+        const logoAttr = opt.logo ? `data-logo="${opt.logo}"` : '';
+        return `<option value="${opt.value}" ${logoAttr}>${opt.label}</option>`;
+      })
+      .join('');
+
+    const keepCurrent = options.some(opt => opt.value === previousModel);
+    if (keepCurrent) {
+      modelEl.value = previousModel;
+    }
+
+    updateModelLogo();
+  };
+
+  const updateModelLogo = () => {
+    const provider = providerEl.value;
+    const options = AI_MODEL_OPTIONS[provider] || [];
+    const selectedValue = modelEl.value;
+    const selectedOpt = options.find(o => o.value === selectedValue);
+    
+    if (logoEl && selectedOpt && selectedOpt.logo) {
+      logoEl.src = selectedOpt.logo;
+      logoEl.alt = selectedOpt.label;
+    }
+  };
+
+  providerEl.addEventListener('change', renderModelOptions);
+  modelEl.addEventListener('change', updateModelLogo);
+  renderModelOptions();
+}
+
 // ─── STRUCTURE PREVIEW ───────────────────────────────────
 function updateStructurePreview(text) {
   const lines = text.split('\n').filter(l => l.trim());

@@ -34,6 +34,9 @@ window.addEventListener('DOMContentLoaded', function() {
   // Setup realtime validation
   setupFormValidation();
 
+  // Setup AI provider/model selectors
+  setupAIModelSelectors();
+
   // Setup preset buttons
   setupPresetButtons();
 
