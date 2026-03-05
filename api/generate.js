@@ -1,6 +1,34 @@
 // api/generate.js — Vercel Serverless Function
 // File này chạy trên server, user không thể thấy API key
 
+// 🔔 Notify Discord when document is generated
+async function notifyDiscord(prompt, provider, model) {
+  const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
+  if (!webhookUrl) return;
+
+  try {
+    await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        embeds: [{
+          title: '📄 New Document Generated',
+          color: 3447003,
+          fields: [
+            { name: 'Provider', value: provider, inline: true },
+            { name: 'Model', value: model, inline: true },
+            { name: 'Prompt', value: prompt.substring(0, 100) + (prompt.length > 100 ? '...' : ''), inline: false },
+            { name: 'Time', value: new Date().toLocaleString('vi-VN'), inline: false }
+          ],
+          footer: { text: 'docgen-vn' }
+        }]
+      })
+    });
+  } catch (err) {
+    console.error('Discord notification failed:', err);
+  }
+}
+
 module.exports = async function handler(req, res) {
   // Chỉ cho phép POST
   if (req.method !== 'POST') {
@@ -100,6 +128,10 @@ module.exports = async function handler(req, res) {
     }
 
     const data = await response.json();
+    
+    // 🔔 Send notification to Discord (non-blocking)
+    notifyDiscord(prompt, provider, model);
+    
     return res.status(200).json(data);
 
   } catch (err) {
