@@ -56,8 +56,8 @@ const AI_MODEL_OPTIONS = {
       logo: './claude-color.svg'
     },
     {
-      value: 'claude-sonnet',
-      label: 'Claude Sonnet (thông minh nhất)',
+      value: 'claude-opus',
+      label: 'Claude Opus (thông minh nhất)',
       logo: './claude-color.svg'
     }
   ]

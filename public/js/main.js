@@ -116,7 +116,12 @@ async function startGenerate() {
       document.getElementById('progress-sub').textContent = `Đang viết: ${chapters[i].title} (${chapterNum}/${chapters.length})`;
 
       try {
-        const chapterSections = await generateChapter(chapters[i], context);
+        const chapterSections = await generateChapter(chapters[i], {
+          ...context,
+          notifyEvent: i === 0,
+          chapterIndex: chapterNum,
+          totalChapters: chapters.length
+        });
         allSections.push(...chapterSections);
 
         await new Promise(r => setTimeout(r, 500));
@@ -164,6 +169,18 @@ async function startGenerate() {
 function downloadFile() {
   if (generatedDoc) {
     saveAs(generatedDoc, generatedFilename);
+
+    const topic = document.getElementById('topic')?.value?.trim() || '';
+    fetch('/api/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        eventType: 'download',
+        topic,
+        filename: generatedFilename,
+        fileSize: generatedDoc.size
+      })
+    }).catch(() => {});
   }
 }
 

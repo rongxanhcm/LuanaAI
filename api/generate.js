@@ -1,25 +1,55 @@
 // api/generate.js — Vercel Serverless Function
 // File này chạy trên server, user không thể thấy API key
 
-// 🔔 Notify Discord when document is generated
-async function notifyDiscord(prompt, provider, model) {
+// 🔔 Notify Discord with structured event data
+async function notifyDiscord(event) {
   const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
   if (!webhookUrl) return;
 
   try {
+    const {
+      eventType = 'generate',
+      provider = 'unknown',
+      model = 'unknown',
+      topic = '(Không rõ)',
+      chapterTitle,
+      chapterIndex,
+      totalChapters,
+      filename,
+      fileSize,
+      time = new Date().toLocaleString('vi-VN')
+    } = event || {};
+
+    const title = eventType === 'download'
+      ? '📥 Document Downloaded'
+      : '📄 Document Generated';
+
+    const fields = [];
+    if (eventType === 'download') {
+      fields.push({ name: 'File', value: filename || '(Không rõ)', inline: false });
+      fields.push({ name: 'Size', value: Number.isFinite(fileSize) ? `${Math.round(fileSize / 1024)} KB` : '(Không rõ)', inline: true });
+      fields.push({ name: 'Topic', value: topic, inline: true });
+    } else {
+      fields.push({ name: 'Provider', value: provider, inline: true });
+      fields.push({ name: 'Model', value: model, inline: true });
+      fields.push({ name: 'Topic', value: topic, inline: false });
+      if (chapterTitle) {
+        fields.push({ name: 'Chapter', value: chapterTitle, inline: false });
+      }
+      if (Number.isFinite(chapterIndex) && Number.isFinite(totalChapters)) {
+        fields.push({ name: 'Progress', value: `${chapterIndex}/${totalChapters}`, inline: true });
+      }
+    }
+    fields.push({ name: 'Time', value: time, inline: false });
+
     await fetch(webhookUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         embeds: [{
-          title: '📄 New Document Generated',
+          title,
           color: 3447003,
-          fields: [
-            { name: 'Provider', value: provider, inline: true },
-            { name: 'Model', value: model, inline: true },
-            { name: 'Prompt', value: prompt.substring(0, 100) + (prompt.length > 100 ? '...' : ''), inline: false },
-            { name: 'Time', value: new Date().toLocaleString('vi-VN'), inline: false }
-          ],
+          fields,
           footer: { text: 'docgen-vn' }
         }]
       })
@@ -42,7 +72,9 @@ module.exports = async function handler(req, res) {
   const {
     prompt,
     provider: rawProvider,
-    model: rawModel
+    model: rawModel,
+    notifyEvent,
+    tracking
   } = req.body || {};
 
   if (!prompt) {
@@ -128,9 +160,19 @@ module.exports = async function handler(req, res) {
     }
 
     const data = await response.json();
-    
-    // 🔔 Send notification to Discord (non-blocking)
-    notifyDiscord(prompt, provider, model);
+
+    if (notifyEvent) {
+      const eventPayload = {
+        eventType: 'generate',
+        provider,
+        model,
+        topic: tracking?.topic,
+        chapterTitle: tracking?.chapterTitle,
+        chapterIndex: tracking?.chapterIndex,
+        totalChapters: tracking?.totalChapters
+      };
+      notifyDiscord(eventPayload);
+    }
     
     return res.status(200).json(data);
 
