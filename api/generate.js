@@ -32,8 +32,8 @@ module.exports = async function handler(req, res) {
       'gemini-3.1-pro-preview': 'gemini-3.1-pro-preview'
     },
     claude: {
-      'claude-haiku': process.env.CLAUDE_HAIKU_MODEL || 'claude-haiku-4-5-20251001-latest',
-      'claude-sonnet': process.env.CLAUDE_SONNET_MODEL || 'claude-opus-4-6'
+      'claude-haiku': process.env.CLAUDE_HAIKU_MODEL || 'claude-haiku-4-5-20251001',
+      'claude-opus': process.env.CLAUDE_OPUS_MODEL || 'claude-opus-4-6'
     }
   };
 
