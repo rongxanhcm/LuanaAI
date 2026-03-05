@@ -171,6 +171,10 @@ function downloadFile() {
     saveAs(generatedDoc, generatedFilename);
 
     const topic = document.getElementById('topic')?.value?.trim() || '';
+    const fileSize = generatedDoc.size || generatedDoc.length || 0;
+    
+    console.log('📥 Sending download tracking...', { generatedFilename, fileSize, topic });
+    
     fetch('/api/track', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -178,9 +182,14 @@ function downloadFile() {
         eventType: 'download',
         topic,
         filename: generatedFilename,
-        fileSize: generatedDoc.size
+        fileSize
       })
-    }).catch(() => {});
+    })
+    .then(res => {
+      console.log('✓ Track response:', res.status);
+      return res.json();
+    })
+    .catch(err => console.error('✗ Track error:', err));
   }
 }
 
