@@ -217,28 +217,7 @@ async function buildDocx(content, fmt, cover) {
     children: coverChildren
   });
 
-  // Section 2: Front matter (TOC - Roman numerals or no numbering)
-  const frontMatterFooter = pageRules.frontMatter.numbering 
-    ? (pageRules.frontMatter.format === 'lowerRoman' 
-        ? {
-            default: new Footer({
-              children: [
-                new Paragraph({
-                  alignment: AlignmentType.CENTER,
-                  children: [
-                    new TextRun({
-                      children: [PageNumber.CURRENT],
-                      font: fmt.fontName,
-                      size: ptToHalfPt(fmt.fontSize)
-                    })
-                  ]
-                })
-              ]
-            })
-          }
-        : undefined)
-    : undefined;
-
+  // Section 2: Front matter (TOC - no page numbers)
   sections.push({
     properties: {
       page: {
@@ -250,7 +229,6 @@ async function buildDocx(content, fmt, cover) {
         }
       }
     },
-    footers: frontMatterFooter ? frontMatterFooter : undefined,
     children: frontMatterChildren
   });
 
