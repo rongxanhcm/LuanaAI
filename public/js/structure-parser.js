@@ -2,6 +2,20 @@
    STRUCTURE PARSER
    ======================================== */
 
+// ─── STRUCTURAL SECTIONS (không cần AI viết nội dung) ───
+// Các section này chỉ là định dạng tài liệu, không phải nội dung
+const STRUCTURAL_SECTION_KEYWORDS = [
+  'mục lục', 'danh sách hình', 'danh sách bảng',
+  'danh mục hình', 'danh mục bảng', 'danh mục từ viết tắt',
+  'danh mục ký hiệu', 'list of figures', 'list of tables', 'table of contents'
+];
+
+function isStructuralSection(title) {
+  if (!title) return false;
+  const normalized = title.toLowerCase().trim();
+  return STRUCTURAL_SECTION_KEYWORDS.some(kw => normalized.startsWith(kw) || normalized === kw);
+}
+
 // ─── PARSE STRUCTURE INTO CHAPTERS ──────────────────────
 function parseStructureIntoChapters(structureText) {
   const lines = structureText.split('\n').filter(l => l.trim());

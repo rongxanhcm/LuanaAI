@@ -149,13 +149,15 @@ async function buildDocx(content, fmt, cover) {
   // ─── SECTION 2: FRONT MATTER (Table of Contents - Roman numerals or no numbering) ───
   const frontMatterChildren = [];
 
-  // ─── TABLE OF CONTENTS ───
+  // ─── TABLE OF CONTENTS (thực sự, với page numbers placeholder) ───
   frontMatterChildren.push(new Paragraph({
+    heading: HeadingLevel.HEADING_1,
     spacing: { after: 200 },
     children: [new TextRun({ text: 'MỤC LỤC', font: fmt.fontName, size: ptToHalfPt(fmt.fontSize + 2), bold: true, allCaps: true })]
   }));
 
   for (const section of (content.sections || [])) {
+    if (section.isStructural) continue; // bỏ qua structural sections trong TOC render
     const level = section.level || 1;
     const indent = (level - 1) * cmToTwip(0.8);
     frontMatterChildren.push(new Paragraph({
@@ -165,12 +167,56 @@ async function buildDocx(content, fmt, cover) {
     }));
   }
 
+  // ─── DANH SÁCH HÌNH & BẢNG (placeholder đúng chuẩn) ───
+  const hinhSections = (content.sections || []).filter(s =>
+    s.isStructural && s.heading?.toLowerCase().includes('hình')
+  );
+  const bangSections = (content.sections || []).filter(s =>
+    s.isStructural && s.heading?.toLowerCase().includes('bảng')
+  );
+
+  if (hinhSections.length > 0) {
+    frontMatterChildren.push(new Paragraph({
+      heading: HeadingLevel.HEADING_1,
+      spacing: { before: 480, after: 200 },
+      children: [new TextRun({ text: 'DANH SÁCH HÌNH', font: fmt.fontName, size: ptToHalfPt(fmt.fontSize + 2), bold: true, allCaps: true })]
+    }));
+    frontMatterChildren.push(new Paragraph({
+      spacing: { after: 80 },
+      children: [new TextRun({ text: 'Hình 1.1: ...', font: fmt.fontName, size: ptToHalfPt(fmt.fontSize), color: '888888', italics: true })]
+    }));
+    frontMatterChildren.push(new Paragraph({
+      spacing: { after: 80 },
+      children: [new TextRun({ text: 'Hình 2.1: ...', font: fmt.fontName, size: ptToHalfPt(fmt.fontSize), color: '888888', italics: true })]
+    }));
+  }
+
+  if (bangSections.length > 0) {
+    frontMatterChildren.push(new Paragraph({
+      heading: HeadingLevel.HEADING_1,
+      spacing: { before: 480, after: 200 },
+      children: [new TextRun({ text: 'DANH SÁCH BẢNG', font: fmt.fontName, size: ptToHalfPt(fmt.fontSize + 2), bold: true, allCaps: true })]
+    }));
+    frontMatterChildren.push(new Paragraph({
+      spacing: { after: 80 },
+      children: [new TextRun({ text: 'Bảng 1.1: ...', font: fmt.fontName, size: ptToHalfPt(fmt.fontSize), color: '888888', italics: true })]
+    }));
+    frontMatterChildren.push(new Paragraph({
+      spacing: { after: 80 },
+      children: [new TextRun({ text: 'Bảng 2.1: ...', font: fmt.fontName, size: ptToHalfPt(fmt.fontSize), color: '888888', italics: true })]
+    }));
+  }
+
   // ─── SECTION 3: MAIN CONTENT (Arabic numbers starting from 1) ───
   const mainContentChildren = [];
 
 
   // ─── CONTENT SECTIONS ───
   for (const section of (content.sections || [])) {
+    // Bỏ qua structural sections trong main content
+    // (Mục lục đã ở frontMatter; Danh sách hình/bảng xử lý riêng bên dưới)
+    if (section.isStructural) continue;
+
     const level = section.level || 1;
     const headingMap = { 1: HeadingLevel.HEADING_1, 2: HeadingLevel.HEADING_2, 3: HeadingLevel.HEADING_3 };
 

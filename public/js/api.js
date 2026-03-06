@@ -38,6 +38,13 @@ async function callAI(prompt) {
 
 // ─── GENERATE CHAPTER CONTENT ────────────────────────────
 async function generateChapter(chapterInfo, context) {
+  // ── Bỏ qua structural sections (Mục lục, Danh sách hình/bảng...)
+  // Chúng sẽ được word-generator.js tự tạo đúng định dạng
+  if (typeof isStructuralSection === 'function' && isStructuralSection(chapterInfo.title)) {
+    console.log(`⏭ Skipping structural section: "${chapterInfo.title}"`);
+    return [{ heading: chapterInfo.title, level: 1, content: '', isStructural: true }];
+  }
+
   const { topic, docTypeLabel, major, description } = context;
 
   const prompt = `Write content for this chapter of a Vietnamese academic document.
