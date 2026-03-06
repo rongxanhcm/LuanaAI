@@ -56,8 +56,8 @@ const AI_MODEL_OPTIONS = {
       logo: './claude-color.svg'
     },
     {
-      value: 'claude-sonnet',
-      label: 'Claude Sonnet (thông minh nhất)',
+      value: 'claude-opus',
+      label: 'Claude Opus (thông minh nhất)',
       logo: './claude-color.svg'
     }
   ]
@@ -69,19 +69,17 @@ const AI_MODEL_OPTIONS = {
 // 'lowerRoman' (i, ii, iii...) is reserved for future enhancement.
 // The docx library v8.5.0 does not natively support Roman numeral formatting.
 const PAGE_NUMBERING_RULES = {
-  // Luận văn / Khóa luận: Quy chuẩn đầy đủ
+  // Luận văn / Khóa luận: Bắt đầu đánh số từ Chương 1
   luan_van: {
     cover: { numbering: false }, // Bìa: không đánh số
     frontMatter: { 
-      numbering: true, 
-      format: 'lowerRoman', // i, ii, iii
-      start: 1,
+      numbering: false,  // Mục lục không đánh số
       sections: ['Lời cam đoan', 'Lời cảm ơn', 'Tóm tắt', 'Mục lục', 'Danh sách hình', 'Danh sách bảng']
     },
     mainContent: { 
       numbering: true, 
-      format: 'decimal', // 1, 2, 3
-      start: 1, // Reset về 1
+      format: 'decimal', // 1, 2, 3...
+      start: 1,  // Bắt đầu từ 1 từ Chương 1
       sections: ['Mở đầu', 'Chương', 'Kết luận', 'Tài liệu tham khảo', 'Phụ lục']
     }
   },
@@ -90,15 +88,13 @@ const PAGE_NUMBERING_RULES = {
   do_an: {
     cover: { numbering: false },
     frontMatter: { 
-      numbering: true, 
-      format: 'lowerRoman',
-      start: 1,
+      numbering: false,  // Mục lục không đánh số
       sections: ['Lời cam đoan', 'Lời cảm ơn', 'Tóm tắt', 'Mục lục', 'Danh sách hình', 'Danh sách bảng']
     },
     mainContent: { 
       numbering: true, 
       format: 'decimal',
-      start: 1,
+      start: 1,  // Bắt đầu từ 1 từ Chương 1
       sections: ['Chương', 'Kết luận', 'Tài liệu tham khảo', 'Phụ lục']
     }
   },
@@ -118,19 +114,17 @@ const PAGE_NUMBERING_RULES = {
     }
   },
 
-  // Báo cáo thực tập: Tương tự tiểu luận
+  // Báo cáo thực tập: Bắt đầu đánh số từ Chương 1
   thuc_tap: {
     cover: { numbering: false },
     frontMatter: { 
-      numbering: true,
-      format: 'lowerRoman',
-      start: 1,
+      numbering: false,  // Mục lục không đánh số
       sections: ['Lời cảm ơn', 'Mục lục']
     },
     mainContent: { 
       numbering: true, 
       format: 'decimal',
-      start: 1,
+      start: 1,  // Bắt đầu từ 1 từ nội dung chính
       sections: ['Giới thiệu', 'Chương', 'Kết luận', 'Tài liệu tham khảo']
     }
   }
