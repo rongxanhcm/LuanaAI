@@ -58,6 +58,6 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: 'Missing eventType' });
   }
 
-  notifyDiscord({ eventType, topic, filename, fileSize, provider, model });
+  await notifyDiscord({ eventType, topic, filename, fileSize, provider, model });
   return res.status(200).json({ ok: true });
 };

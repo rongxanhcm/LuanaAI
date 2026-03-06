@@ -332,8 +332,6 @@ async function buildDocx(content, fmt, cover) {
       },
       paragraphStyles: [
         {
-          // Style riêng cho MỤC LỤC / DANH SÁCH HÌNH/BẢNG
-          // KHÔNG có outlineLevel → TOC field sẽ bỏ qua, không lọt vào mục lục
           id: 'FrontMatterHeading',
           name: 'Front Matter Heading',
           basedOn: 'Normal',
@@ -341,6 +339,22 @@ async function buildDocx(content, fmt, cover) {
           quickFormat: true,
           run: { font: fmt.fontName, size: ptToHalfPt(fmt.fontSize + 1), bold: true, color: '1A252F' },
           paragraph: { spacing: { before: 480, after: 120 }, alignment: AlignmentType.CENTER }
+          // KHÔNG có outlineLevel → TOC field bỏ qua
+        },
+        {
+          id: 'Heading1', name: 'Heading 1', basedOn: 'Normal', next: 'Normal', quickFormat: true,
+          run: { font: fmt.fontName, size: ptToHalfPt(fmt.fontSize + 1), bold: true, color: '1A252F' },
+          paragraph: { spacing: { before: 480, after: 120 }, outlineLevel: 0 }
+        },
+        {
+          id: 'Heading2', name: 'Heading 2', basedOn: 'Normal', next: 'Normal', quickFormat: true,
+          run: { font: fmt.fontName, size: ptToHalfPt(fmt.fontSize), bold: true, color: '2C3E50' },
+          paragraph: { spacing: { before: 240, after: 120 }, outlineLevel: 1 }
+        },
+        {
+          id: 'Heading3', name: 'Heading 3', basedOn: 'Normal', next: 'Normal', quickFormat: true,
+          run: { font: fmt.fontName, size: ptToHalfPt(fmt.fontSize), bold: false, italics: true, color: '2C3E50' },
+          paragraph: { spacing: { before: 160, after: 80 }, outlineLevel: 2 }
         },
       ]
     },
