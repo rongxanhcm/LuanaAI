@@ -153,7 +153,7 @@ async function buildDocx(content, fmt, cover) {
   frontMatterChildren.push(new Paragraph({
     heading: HeadingLevel.HEADING_1,
     spacing: { after: 200 },
-    children: [new TextRun({ text: 'MỤC LỤC', font: fmt.fontName, size: ptToHalfPt(fmt.fontSize + 2), bold: true, allCaps: true })]
+    children: [new TextRun({ text: 'MỤC LỤC' })]
   }));
 
   for (const section of (content.sections || [])) {
@@ -179,7 +179,7 @@ async function buildDocx(content, fmt, cover) {
     frontMatterChildren.push(new Paragraph({
       heading: HeadingLevel.HEADING_1,
       spacing: { before: 480, after: 200 },
-      children: [new TextRun({ text: 'DANH SÁCH HÌNH', font: fmt.fontName, size: ptToHalfPt(fmt.fontSize + 2), bold: true, allCaps: true })]
+      children: [new TextRun({ text: 'DANH SÁCH HÌNH' })]
     }));
     frontMatterChildren.push(new Paragraph({
       spacing: { after: 80 },
@@ -195,7 +195,7 @@ async function buildDocx(content, fmt, cover) {
     frontMatterChildren.push(new Paragraph({
       heading: HeadingLevel.HEADING_1,
       spacing: { before: 480, after: 200 },
-      children: [new TextRun({ text: 'DANH SÁCH BẢNG', font: fmt.fontName, size: ptToHalfPt(fmt.fontSize + 2), bold: true, allCaps: true })]
+      children: [new TextRun({ text: 'DANH SÁCH BẢNG' })]
     }));
     frontMatterChildren.push(new Paragraph({
       spacing: { after: 80 },
@@ -220,15 +220,13 @@ async function buildDocx(content, fmt, cover) {
     const level = section.level || 1;
     const headingMap = { 1: HeadingLevel.HEADING_1, 2: HeadingLevel.HEADING_2, 3: HeadingLevel.HEADING_3 };
 
+    // QUAN TRỌNG: Không set bold/size/font trong TextRun của heading
+    // Để Word/docx tự áp dụng heading style → TOC mới nhận diện đúng
     mainContentChildren.push(new Paragraph({
       heading: headingMap[level] || HeadingLevel.HEADING_2,
       spacing: { before: level === 1 ? 480 : 240, after: 120 },
       children: [new TextRun({
         text: section.heading || '',
-        font: fmt.fontName,
-        size: ptToHalfPt(level === 1 ? fmt.fontSize + 1 : fmt.fontSize),
-        bold: true,
-        color: level === 1 ? '1A252F' : '2C3E50',
       })]
     }));
 
@@ -331,7 +329,31 @@ async function buildDocx(content, fmt, cover) {
     children: mainContentChildren
   });
 
-  const doc = new Document({ sections });
+  const doc = new Document({
+    styles: {
+      default: {
+        document: { run: { font: fmt.fontName, size: ptToHalfPt(fmt.fontSize) } }
+      },
+      paragraphStyles: [
+        {
+          id: 'Heading1', name: 'Heading 1', basedOn: 'Normal', next: 'Normal', quickFormat: true,
+          run: { font: fmt.fontName, size: ptToHalfPt(fmt.fontSize + 1), bold: true, color: '1A252F' },
+          paragraph: { spacing: { before: 480, after: 120 }, outlineLevel: 0 }
+        },
+        {
+          id: 'Heading2', name: 'Heading 2', basedOn: 'Normal', next: 'Normal', quickFormat: true,
+          run: { font: fmt.fontName, size: ptToHalfPt(fmt.fontSize), bold: true, color: '2C3E50' },
+          paragraph: { spacing: { before: 240, after: 120 }, outlineLevel: 1 }
+        },
+        {
+          id: 'Heading3', name: 'Heading 3', basedOn: 'Normal', next: 'Normal', quickFormat: true,
+          run: { font: fmt.fontName, size: ptToHalfPt(fmt.fontSize), bold: false, italics: true, color: '2C3E50' },
+          paragraph: { spacing: { before: 160, after: 80 }, outlineLevel: 2 }
+        },
+      ]
+    },
+    sections
+  });
 
   return await Packer.toBlob(doc);
 }
