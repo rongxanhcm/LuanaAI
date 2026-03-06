@@ -35,7 +35,13 @@ function parseStructureIntoChapters(structureText) {
         sections: [{ heading: trimmed, level: 1 }]
       };
     } else if (currentChapter) {
-      const level = indent > 0 ? 2 : 1;
+      // level 2: mục x.x (VD: 1.1, 2.3) hoặc indent 1 lần
+      // level 3: sub-bullet (bắt đầu bằng "- " hoặc indent >= 4) hoặc mục x.x.x
+      let level = 2;
+      const isSubBullet = /^-\s/.test(trimmed);
+      const isDeepNumbered = /^\d+\.\d+\.\d+/.test(trimmed);
+      const isDeepIndent = indent >= 4;
+      if (isSubBullet || isDeepNumbered || isDeepIndent) level = 3;
       currentChapter.sections.push({ heading: trimmed, level });
     }
   }

@@ -149,9 +149,9 @@ async function buildDocx(content, fmt, cover) {
   // ─── SECTION 2: FRONT MATTER (Table of Contents - Roman numerals or no numbering) ───
   const frontMatterChildren = [];
 
-  // ─── MỤC LỤC TITLE ───
+  // ─── MỤC LỤC TITLE (dùng style 'FrontMatterHeading' để KHÔNG bị TOC field quét) ───
   frontMatterChildren.push(new Paragraph({
-    heading: HeadingLevel.HEADING_1,
+    style: 'FrontMatterHeading',
     spacing: { after: 200 },
     children: [new TextRun({ text: 'MỤC LỤC' })]
   }));
@@ -173,7 +173,7 @@ async function buildDocx(content, fmt, cover) {
 
   if (hinhSections.length > 0) {
     frontMatterChildren.push(new Paragraph({
-      heading: HeadingLevel.HEADING_1,
+      style: 'FrontMatterHeading',
       spacing: { before: 480, after: 200 },
       children: [new TextRun({ text: 'DANH SÁCH HÌNH' })]
     }));
@@ -189,7 +189,7 @@ async function buildDocx(content, fmt, cover) {
 
   if (bangSections.length > 0) {
     frontMatterChildren.push(new Paragraph({
-      heading: HeadingLevel.HEADING_1,
+      style: 'FrontMatterHeading',
       spacing: { before: 480, after: 200 },
       children: [new TextRun({ text: 'DANH SÁCH BẢNG' })]
     }));
@@ -331,6 +331,16 @@ async function buildDocx(content, fmt, cover) {
         document: { run: { font: fmt.fontName, size: ptToHalfPt(fmt.fontSize) } }
       },
       paragraphStyles: [
+        {
+          id: 'FrontMatterHeading',
+          name: 'Front Matter Heading',
+          basedOn: 'Normal',
+          next: 'Normal',
+          quickFormat: true,
+          run: { font: fmt.fontName, size: ptToHalfPt(fmt.fontSize + 1), bold: true, color: '1A252F' },
+          paragraph: { spacing: { before: 480, after: 120 }, alignment: AlignmentType.CENTER }
+          // KHÔNG có outlineLevel → TOC field bỏ qua
+        },
         {
           id: 'Heading1', name: 'Heading 1', basedOn: 'Normal', next: 'Normal', quickFormat: true,
           run: { font: fmt.fontName, size: ptToHalfPt(fmt.fontSize + 1), bold: true, color: '1A252F' },
